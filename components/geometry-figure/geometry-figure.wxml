@@ -1,0 +1,3 @@
+<view class="geometry-figure" wx:if="{{figure}}">
+  <canvas type="2d" id="fig" class="fig-canvas"></canvas>
+</view>

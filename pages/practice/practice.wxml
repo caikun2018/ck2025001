@@ -1,0 +1,99 @@
+<view class="practice-page" style="{{pageStyle}};padding-top:{{navTotal}}px">
+  <!-- 自定义标题栏：左侧科目下拉框，标题居中，右侧空出微信胶囊位置 -->
+  <view class="nav-bar" style="padding-top:{{statusBarHeight}}px">
+    <view class="nav-inner" style="height:{{navBarHeight}}px">
+      <!-- 学科下拉框：原题练习的科目筛选，从原学科栏移到标题栏左侧 -->
+      <picker class="nav-picker" wx:if="{{mode==='original'}}" mode="selector" range="{{subjects}}" value="{{subjectIndex}}" bindchange="onSubjectChange">
+        <view class="nav-subject">
+          <text class="nav-subject-text">{{activeSubject}}</text>
+          <text class="nav-subject-arrow">▾</text>
+        </view>
+      </picker>
+      <text class="nav-title">练习</text>
+    </view>
+  </view>
+
+  <!-- 模式切换 -->
+  <view class="mode-tabs">
+    <view class="mode-tab {{mode==='original'?'active':''}}" data-mode="original" bindtap="switchMode">原题练习</view>
+    <view class="mode-tab {{mode==='exam'?'active':''}}" data-mode="exam" bindtap="switchMode">模拟考试</view>
+  </view>
+
+  <!-- 原题练习 -->
+  <block wx:if="{{mode==='original'}}">
+    <view class="filter-bar">
+      <!-- 搜索：沿用原错题本的搜索框 -->
+      <view class="search-inline">
+        <input class="search-inline-input" placeholder="搜索题目/知识点" value="{{keyword}}" bindinput="onSearch" />
+      </view>
+    </view>
+
+    <view class="select-bar">
+      <text class="select-tip">已选 {{selectedCount}} 题 · 点圆圈选题，点题干看详情</text>
+      <view class="select-actions">
+        <text class="select-all" bindtap="selectAll">全选</text>
+      </view>
+    </view>
+
+    <view class="practice-list">
+      <view class="practice-item {{selected[item.id]?'sel':''}}" wx:for="{{filtered}}" wx:key="id">
+        <!-- 左侧复选框：只管勾选，不影响看详情 -->
+        <view class="check-box" data-id="{{item.id}}" catchtap="toggleSelect">{{selected[item.id] ? '✓' : ''}}</view>
+        <!-- 题干：点一下进详情 -->
+        <view class="practice-info" data-id="{{item.id}}" catchtap="goDetail">
+          <view class="practice-title">{{item.title}}</view>
+          <view class="practice-question">{{item.question}}</view>
+          <view class="practice-meta">
+            <text class="tag tag-{{item.subject==='数学'?'math':item.subject==='语文'?'chinese':item.subject==='英语'?'english':'default'}}">{{item.subject}}</text>
+            <text class="diff-tag">{{item.difficulty}}</text>
+            <!-- 消退次数以云端为准：正在同步时先显示「同步中」，拉完才显示真实次数 -->
+            <text class="fade-mini" wx:if="{{syncing}}">消退 同步中…</text>
+            <text class="fade-mini" wx:else>消退 {{item.correctCount}}/{{fadeThreshold}}</text>
+          </view>
+        </view>
+        <text class="detail-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!filtered.length}}">
+      <image src="/assets/01_主角色/表情动作/02_失落疑惑挠头.jpg" mode="aspectFit"></image>
+      <view wx:if="{{keyword}}">没有找到「{{keyword}}」相关的错题</view>
+      <view wx:else>{{activeSubject==='全科' ? '还没有错题哦' : activeSubject + ' 还没有错题哦'}}</view>
+    </view>
+
+    <view class="bottom-bar" wx:if="{{filtered.length}}">
+      <button class="btn-primary" bindtap="startOriginal">开始练习（{{selectedCount}} 题）</button>
+    </view>
+  </block>
+
+  <!-- 模拟考试 -->
+  <block wx:if="{{mode==='exam'}}">
+    <view class="exam-card">
+      <image class="exam-char" src="/assets/01_主角色/表情动作/04_加油鼓劲握拳.jpg" mode="aspectFit"></image>
+      <view class="exam-title">模拟考试</view>
+      <view class="exam-desc">AI 举一反三出题，难度参考闯关中等，覆盖核心知识点，考后统一批改</view>
+
+      <view class="exam-form">
+        <view class="exam-row">
+          <text class="exam-label">学科</text>
+          <picker class="exam-picker" mode="selector" range="{{examSubjects}}" value="{{examSubjectIndex}}" bindchange="onExamSubjectChange">
+            <view class="exam-value">
+              <text>{{examSubject}}</text>
+              <text class="exam-value-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+        <view class="exam-row">
+          <text class="exam-label">题量</text>
+          <slider min="5" max="30" step="5" value="{{examCount}}" show-value bindchange="onExamCountChange" />
+        </view>
+        <view class="exam-row">
+          <text class="exam-label">时长(分钟)</text>
+          <slider min="10" max="120" step="10" value="{{examDuration}}" show-value bindchange="onExamDurationChange" />
+        </view>
+      </view>
+
+      <button class="btn-primary exam-start" bindtap="startExam">开始考试</button>
+    </view>
+  </block>
+</view>

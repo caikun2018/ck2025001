@@ -1,0 +1,140 @@
+<view class="ai-chat {{hasTabBar ? 'has-tabbar' : ''}} {{embedded ? 'embedded' : ''}} {{expanded ? 'expanded' : ''}}"
+  style="{{topInset > 0 ? 'top:' + topInset + 'px;--top-inset:' + topInset + 'px' : ''}}">
+  <!-- 对话面板（仿微信聊天）：整页嵌入时始终铺满 -->
+  <view class="chat-panel {{embedded || expanded ? 'show' : ''}}" catchtap="noop">
+    <!-- 滚动跟着最新内容走：scroll-top 由 js 递增，值变了才会真正触发滚动 -->
+    <scroll-view class="chat-messages" scroll-y scroll-top="{{scrollTop}}" bindscroll="onMsgScroll" bindscrolltolower="onMsgBottom">
+      <block wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
+        <view class="msg {{item.role}}">
+          <view class="bubble" wx:if="{{item.type==='image'}}">
+            <image class="msg-img" src="{{item.content}}" mode="aspectFill"></image>
+          </view>
+          <view class="bubble" wx:elif="{{item.type==='file'}}">
+            <text class="file-name">附件 {{item.content}}</text>
+            <text class="file-state {{item.fileOk === false ? 'fail' : ''}}" wx:if="{{item.fileState}}">{{item.fileState}}</text>
+          </view>
+          <view class="bubble" wx:else>
+            <rich-text wx:if="{{item.html}}" nodes="{{item.html}}"></rich-text>
+            <text wx:else class="bubble-plain">{{item.content}}</text>
+          </view>
+        </view>
+      </block>
+      <view class="msg assistant" wx:if="{{loading}}">
+        <view class="bubble typing">
+          <text class="dot"></text>
+          <text class="dot"></text>
+          <text class="dot"></text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 录音悬浮提示：按住说话时浮在面板中间，麦克风呼吸圈 + 音柱跳动，表示正在录入 -->
+    <view class="rec-mask" wx:if="{{recording}}">
+      <view class="rec-card">
+        <view class="rec-mic">
+          <view class="rec-halo"></view>
+          <view class="rec-halo late"></view>
+          <view class="rec-head"></view>
+          <view class="rec-arc"></view>
+          <view class="rec-stem"></view>
+          <view class="rec-base"></view>
+        </view>
+        <view class="rec-wave">
+          <view class="rec-bar b1"></view>
+          <view class="rec-bar b2"></view>
+          <view class="rec-bar b3"></view>
+          <view class="rec-bar b4"></view>
+          <view class="rec-bar b5"></view>
+        </view>
+        <view class="rec-tip">正在听你说… {{voiceSeconds}}s</view>
+        <view class="rec-sub">松开手指结束录音</view>
+      </view>
+    </view>
+
+    <!-- 输入区：默认语音，点左侧按钮可切键盘输入 -->
+    <view class="chat-input-bar">
+      <view class="mode-btn {{transcribing ? 'disabled' : ''}}" catchtap="switchInput">{{inputMode === 'voice' ? '键盘' : '语音'}}</view>
+
+      <view wx:if="{{inputMode === 'voice'}}"
+        class="voice-btn {{recording ? 'recording' : ''}} {{(transcribing || loading) ? 'disabled' : ''}}"
+        catchtouchstart="startRecord" catchtouchend="stopRecord" catchtouchcancel="stopRecord">
+        {{loading ? 'AI 回复中…' : (transcribing ? '识别中...' : (recording ? '松开 结束 ' + voiceSeconds + 's' : '按住 说话'))}}
+      </view>
+      <input wx:else class="chat-input {{loading ? 'disabled' : ''}}" placeholder="{{loading ? 'AI 回复中，稍等一下…' : '问我任何题目...'}}"
+        value="{{inputText}}" bindinput="onInput" disabled="{{loading}}"
+        confirm-type="send" bindconfirm="sendText" cursor-spacing="24" />
+
+      <!-- 图片 / 文件合并成一个「＋」：点开再选，输入栏不再挤两个按钮 -->
+      <view class="plus-btn {{loading ? 'disabled' : ''}}" catchtap="openAttach">＋</view>
+      <view class="send-btn {{loading ? 'disabled' : ''}}" catchtap="sendText" wx:if="{{inputMode === 'text' && inputText}}">发送</view>
+    </view>
+  </view>
+
+  <!-- 归档确认（全屏） -->
+  <view class="archive-page" wx:if="{{archiveVisible}}">
+    <view class="archive-header">
+      <text class="archive-title">归档到乐享知识库</text>
+      <text class="archive-cancel" catchtap="closeArchive">取消</text>
+    </view>
+
+    <scroll-view class="archive-body" scroll-y>
+      <view class="archive-tip">勾选要保存的内容，取消勾选的不会写入；会话记录为必选，始终归档</view>
+
+      <!-- 会话总结（强制归档，不可取消） -->
+      <view class="archive-card">
+        <view class="card-head">
+          <view class="cb on locked"></view>
+          <text class="card-title">归档会话</text>
+          <text class="card-tag">必选</text>
+        </view>
+        <view class="card-body">
+          <view class="card-loading" wx:if="{{archiveLoading}}">AI 正在总结这次对话…</view>
+          <view class="card-error" wx:elif="{{archiveError}}">{{archiveError}}</view>
+          <view class="card-text" wx:else>{{archiveSummary}}</view>
+        </view>
+      </view>
+
+      <!-- 错题 -->
+      <block wx:if="{{archiveWrongs.length}}">
+        <view class="archive-sub">识别到 {{archiveWrongs.length}} 道错题</view>
+        <view class="archive-card" wx:for="{{archiveWrongs}}" wx:key="index">
+          <view class="card-head">
+            <view class="cb {{item.checked ? 'on' : ''}}" catchtap="toggleWrong" data-index="{{index}}"></view>
+            <text class="card-title">错题 · {{item.subject}}</text>
+            <text class="card-tag">{{item.knowledge}}</text>
+          </view>
+          <view class="card-body">
+            <view class="card-text">{{item.question}}</view>
+            <view class="card-text muted" wx:if="{{item.correctAnswer}}">正确答案：{{item.correctAnswer}}</view>
+            <view class="card-text muted" wx:if="{{item.analysis}}">错因：{{item.analysis}}</view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 知识点 -->
+      <block wx:if="{{archivePoints.length}}">
+        <view class="archive-sub">识别到 {{archivePoints.length}} 个知识点</view>
+        <view class="archive-card" wx:for="{{archivePoints}}" wx:key="index">
+          <view class="card-head">
+            <view class="cb {{item.checked ? 'on' : ''}}" catchtap="togglePoint" data-index="{{index}}"></view>
+            <text class="card-title">知识点 · {{item.subject}}</text>
+          </view>
+          <view class="card-body">
+            <view class="card-text strong">{{item.title}}</view>
+            <view class="card-text">{{item.content}}</view>
+          </view>
+        </view>
+      </block>
+
+      <view class="archive-empty" wx:if="{{!archiveLoading && !archiveError && !archiveWrongs.length && !archivePoints.length}}">
+        这次对话里没有提取到错题或知识点，仍可只归档会话。
+      </view>
+
+      <view class="archive-bottom-gap"></view>
+    </scroll-view>
+
+    <view class="archive-footer">
+      <view class="archive-btn" catchtap="confirmArchive">确认归档</view>
+    </view>
+  </view>
+</view>

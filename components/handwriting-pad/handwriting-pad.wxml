@@ -1,0 +1,35 @@
+<view class="pad-mask" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="pad-panel">
+    <view class="pad-header">
+      <text class="pad-title">{{peek ? '题目' : '手写板'}}</text>
+      <view class="pad-header-actions">
+        <text class="pad-switch" bindtap="togglePeek">{{peek ? '✍️ 继续手写' : '📖 看题目'}}</text>
+        <text class="pad-close" bindtap="closePad">收起</text>
+      </view>
+    </view>
+
+    <view class="pad-body">
+      <!-- 手写区：始终保留在页面中，切到题目视图时被覆盖，手写内容不会丢失 -->
+      <view class="pad-main">
+        <view class="pad-tip">可以写算式、竖式或画图形，写完点「完成」由 AI 识别判题</view>
+        <view class="pad-canvas-wrap">
+          <canvas type="2d" id="pad" class="pad-canvas" disable-scroll="{{true}}"
+                  bindtouchstart="onTouchStart" catchtouchmove="onTouchMove"
+                  bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd"></canvas>
+        </view>
+        <view class="pad-actions">
+          <view class="pad-btn ghost" bindtap="clearPad">清空</view>
+          <view class="pad-btn primary" bindtap="confirmPad">完成</view>
+        </view>
+      </view>
+
+      <!-- 题目查看层 -->
+      <view class="pad-peek" wx:if="{{peek}}">
+        <scroll-view class="pad-peek-scroll" scroll-y>
+          <slot name="peek"></slot>
+        </scroll-view>
+        <view class="pad-peek-back" bindtap="togglePeek">✍️ 返回手写板</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,45 @@
+<view class="challenge-page" style="{{pageStyle}}">
+  <view class="challenge-header">
+    <view class="challenge-header-row">
+      <view class="challenge-title-wrap">
+        <text class="challenge-title">闯关挑战</text>
+        <text class="challenge-sub">每次 {{challengeCount}} 题，举一反三强化练习</text>
+      </view>
+      <!-- 学科下拉框：与乐享知识库科目一致，另含全科 -->
+      <picker class="subject-picker" mode="selector" range="{{subjects}}" value="{{subjectIndex}}" bindchange="onSubjectChange">
+        <view class="subject-picker-box">
+          <text class="subject-picker-text">{{activeSubject}}</text>
+          <text class="subject-picker-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 快速开始 -->
+  <view class="quick-start" bindtap="quickStart">
+    <image class="quick-char" src="{{charImg}}" mode="aspectFit"></image>
+    <view class="quick-info">
+      <view class="quick-title">开始 {{activeSubject}} 闯关</view>
+      <view class="quick-sub">{{activeSubject === '全科' ? 'AI 综合各科知识点和错题出题' : 'AI 基于错题举一反三出题'}}</view>
+    </view>
+    <view class="quick-arrow">▶</view>
+  </view>
+
+  <!-- 关卡地图：全部开放，逐关扩大知识点范围 -->
+  <view class="section-title">关卡地图</view>
+  <view class="level-map">
+    <view class="level-node"
+          wx:for="{{levels}}" wx:key="id"
+          data-level="{{item}}" bindtap="startChallenge">
+      <view class="level-num">{{item.id}}</view>
+      <view class="level-name">{{item.name}}</view>
+      <view class="level-scope">{{item.scopeTip}}</view>
+      <view class="level-stars">
+        <text class="star {{item.stars>=1?'on':''}}">★</text>
+        <text class="star {{item.stars>=2?'on':''}}">★</text>
+        <text class="star {{item.stars>=3?'on':''}}">★</text>
+      </view>
+    </view>
+  </view>
+
+</view>

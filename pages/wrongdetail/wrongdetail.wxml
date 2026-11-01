@@ -1,0 +1,99 @@
+<view class="detail-page" style="{{pageStyle}}" wx:if="{{item}}">
+  <view class="detail-header">
+    <text class="tag tag-{{item.subject==='数学'?'math':item.subject==='语文'?'chinese':item.subject==='英语'?'english':'default'}}">{{item.subject}}</text>
+    <text class="knowledge">{{item.knowledge}}</text>
+    <text class="difficulty diff-{{item.diffClass}}">{{item.difficulty}}</text>
+  </view>
+
+  <!-- 从「原题练习」进来的：再点一下题干就返回练习页 -->
+  <view class="detail-card" bindtap="onQuestionTap">
+    <view class="detail-label">题干</view>
+    <view class="detail-question">{{item.question}}</view>
+    <view class="back-hint" wx:if="{{fromPractice}}">再点一下题干，回到原题练习</view>
+  </view>
+
+  <!-- AI 解题思路 -->
+  <view class="detail-card ai-card">
+    <view class="detail-label flex-between">
+      <text>AI 解题思路</text>
+      <text class="ai-refresh" bindtap="regenerateSolution">{{solutionLoading ? '生成中...' : '换一个思路'}}</text>
+    </view>
+    <view class="ai-loading" wx:if="{{solutionLoading}}">
+      <text class="dot"></text><text class="dot"></text><text class="dot"></text>
+      <text class="ai-loading-text">AI 正在分析这道题...</text>
+    </view>
+    <view class="ai-solution" wx:elif="{{aiSolution}}">{{aiSolution}}</view>
+    <view class="ai-empty" wx:else>
+      <text>还没有生成解题思路</text>
+      <text class="ai-retry" bindtap="regenerateSolution">点此生成</text>
+      <text class="ai-hint">闯关时会自动生成并保存，下次点开就不用等</text>
+    </view>
+  </view>
+
+  <view class="detail-card" bindtap="toggleAnswer">
+    <view class="detail-label flex-between">
+      <text>我的错误答案 / 正确答案</text>
+      <text class="toggle-icon">{{showAnswer ? '▲' : '▼'}}</text>
+    </view>
+    <block wx:if="{{showAnswer}}">
+      <view class="answer-row my">
+        <text class="answer-label">我的答案：</text>
+        <text class="answer-text wrong">{{item.myAnswer}}</text>
+      </view>
+      <view class="answer-row correct">
+        <text class="answer-label">正确答案：</text>
+        <text class="answer-text right">{{item.correctAnswer}}</text>
+      </view>
+      <view class="analysis-box">
+        <text class="analysis-label">错因分析：</text>
+        <text class="analysis-text">{{item.analysis}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="detail-card">
+    <view class="detail-label">消退进度</view>
+    <view class="fade-progress-lg">
+      <view class="fade-bar-lg">
+        <view class="fade-fill-lg" style="width: {{item.correctCount/fadeThreshold*100}}%"></view>
+      </view>
+      <text class="fade-count-lg">{{item.correctCount}} / {{fadeThreshold}}</text>
+    </view>
+    <view class="fade-tip">连续答对 {{fadeThreshold}} 次即可消退</view>
+  </view>
+
+  <view class="detail-card" wx:if="{{knowledgeItem}}">
+    <view class="detail-label">知识点掌握 · {{knowledgeItem.name}}</view>
+    <view class="fade-progress-lg">
+      <view class="fade-bar-lg">
+        <view class="fade-fill-lg" style="width: {{knowledgeItem.count/fadeThreshold*100}}%"></view>
+      </view>
+      <text class="fade-count-lg">{{knowledgeItem.count}} / {{fadeThreshold}}</text>
+    </view>
+    <view class="fade-tip">{{knowledgeTip}}</view>
+  </view>
+
+  <view class="detail-card" bindtap="toggleRecords">
+    <view class="detail-label flex-between">
+      <text>练习记录</text>
+      <text class="toggle-icon">{{showRecords ? '▲' : '▼'}}</text>
+    </view>
+    <view class="records" wx:if="{{showRecords}}">
+      <view class="record-item" wx:for="{{item.records}}" wx:key="date">
+        <text class="record-date">{{item.date}}</text>
+        <text class="record-result {{item.correct ? 'right' : 'wrong'}}">{{item.correct ? '✓ 答对' : '✗ 答错'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="detail-meta">
+    <text>来源：{{item.source}}</text>
+    <text>录入：{{item.createdAt}}</text>
+  </view>
+
+  <view class="action-bar">
+    <button class="btn-secondary action-btn" bindtap="onEdit">编辑</button>
+    <button class="btn-primary action-btn" bindtap="onPractice">练习此题</button>
+    <button class="btn-danger action-btn" bindtap="onDelete">归档</button>
+  </view>
+</view>

@@ -1,0 +1,24 @@
+<view class="result-page" style="{{pageStyle}}">
+  <image class="result-char" src="{{charImg}}" mode="aspectFit"></image>
+  <view class="result-title">{{mode==='exam' ? '考试完成' : '练习完成'}}</view>
+
+  <view class="result-score">
+    <text class="score-big rainbow-text">{{correct}}/{{total}}</text>
+    <text class="score-sub">答对题数</text>
+  </view>
+
+  <view class="rate-bar">
+    <view class="rate-fill" style="width: {{correct/total*100}}%"></view>
+  </view>
+  <view class="rate-text">正确率 {{correct/total*100}}%</view>
+
+  <view class="wrong-section" wx:if="{{wrongQuestions.length}}">
+    <view class="wrong-title">本次 {{wrongQuestions.length}} 道错题待入库</view>
+    <view class="wrong-actions">
+      <button class="btn-secondary" bindtap="goBack">跳过</button>
+      <button class="btn-primary" bindtap="confirmWrong">存入错题本</button>
+    </view>
+  </view>
+
+  <button class="btn-secondary back-btn" bindtap="goBack" wx:if="{{!wrongQuestions.length}}">返回练习</button>
+</view>

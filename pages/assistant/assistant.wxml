@@ -1,0 +1,11 @@
+<view class="assistant-page" style="{{pageStyle}}">
+  <!-- 自定义标题栏：左上角「新建对话」，标题居中，右侧空出微信胶囊位置 -->
+  <view class="nav-bar" style="padding-top:{{statusBarHeight}}px">
+    <view class="nav-inner" style="height:{{navBarHeight}}px">
+      <view class="nav-new" catchtap="onNewChat">＋ 新建对话</view>
+      <text class="nav-title">AI 助手</text>
+    </view>
+  </view>
+
+  <ai-chat id="ai-chat" embedded="{{true}}" top-inset="{{navTotal}}"></ai-chat>
+</view>

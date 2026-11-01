@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡通进度条方案对比</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f0ff;
+    padding: 30px;
+  }
+  h2 {
+    text-align: center;
+    color: #7B5EA7;
+    margin-bottom: 30px;
+    font-size: 22px;
+  }
+  .demo-row {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .demo-card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(123, 94, 167, 0.1);
+  }
+  .demo-title {
+    font-size: 14px;
+    color: #9B7FC7;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+
+  /* ===== 方案1：星星逐个点亮 ===== */
+  .star-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+  .star-progress .s {
+    width: 28px;
+    height: 28px;
+    opacity: 0.25;
+    animation: starLight 2s ease-in-out infinite;
+  }
+  .star-progress .s svg { width: 100%; height: 100%; }
+  .star-progress .s:nth-child(1) { animation-delay: 0s; }
+  .star-progress .s:nth-child(2) { animation-delay: 0.2s; }
+  .star-progress .s:nth-child(3) { animation-delay: 0.4s; }
+  .star-progress .s:nth-child(4) { animation-delay: 0.6s; }
+  .star-progress .s:nth-child(5) { animation-delay: 0.8s; }
+  .star-progress .s:nth-child(6) { animation-delay: 1.0s; }
+  .star-progress .s:nth-child(7) { animation-delay: 1.2s; }
+  .star-progress .s:nth-child(8) { animation-delay: 1.4s; }
+  .star-progress .s:nth-child(9) { animation-delay: 1.6s; }
+  .star-progress .s:nth-child(10) { animation-delay: 1.8s; }
+  @keyframes starLight {
+    0%, 100% { opacity: 0.25; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 6px #FFD93D); }
+  }
+
+  /* ===== 方案2：粉色能量胶囊条 ===== */
+  .energy-bar {
+    width: 100%;
+    height: 28px;
+    background: #F3E8FF;
+    border-radius: 14px;
+    border: 2px solid #D4BFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .energy-fill {
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, #FFB6C1, #FF9EC7, #FFB6C1);
+    border-radius: 12px;
+    position: relative;
+    animation: energyFlow 2s ease-in-out infinite;
+  }
+  .energy-fill::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -6px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    animation: starBounce 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes energyFlow {
+    0% { left: 0; width: 30%; }
+    50% { left: 60%; width: 40%; }
+    100% { left: 0; width: 30%; }
+  }
+  @keyframes starBounce {
+    from { transform: translateY(-50%) scale(1); }
+    to { transform: translateY(-60%) scale(1.2); }
+  }
+
+  /* ===== 方案3：小兔子跑步 ===== */
+  .rabbit-track {
+    width: 100%;
+    height: 40px;
+    position: relative;
+    background: linear-gradient(to bottom, transparent 80%, #E8DFF5 80%, #E8DFF5 100%);
+  }
+  .rabbit {
+    position: absolute;
+    bottom: 8px;
+    width: 36px;
+    height: 36px;
+    animation: rabbitRun 2.5s ease-in-out infinite;
+  }
+  .rabbit svg { width: 100%; height: 100%; }
+  @keyframes rabbitRun {
+    0% { left: 0; }
+    50% { left: calc(100% - 36px); }
+    100% { left: 0; }
+  }
+  .footprints {
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+  .footprints span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D4BFFF;
+    opacity: 0.5;
+  }
+
+  .tip {
+    text-align: center;
+    font-size: 12px;
+    color: #B0A0CC;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+  <h2>卡通进度条 3 种方案</h2>
+  <div class="demo-row">
+
+    <!-- 方案1：星星逐个点亮 -->
+    <div class="demo-card">
+      <div class="demo-title">方案 1：星星逐个点亮（10颗星波浪式亮起）</div>
+      <div class="star-progress">
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+        <div class="s"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD93D"/></svg></div>
+      </div>
+      <div class="tip">和主角的星星元素呼应，10颗星对应闯关10道题</div>
+    </div>
+
+    <!-- 方案2：粉色能量条 -->
+    <div class="demo-card">
+      <div class="demo-title">方案 2：粉色能量胶囊条（星星在前面领跑）</div>
+      <div class="energy-bar">
+        <div class="energy-fill"></div>
+      </div>
+      <div class="tip">进度感最强，胶囊造型圆润可爱</div>
+    </div>
+
+    <!-- 方案3：小兔子跑步 -->
+    <div class="demo-card">
+      <div class="demo-title">方案 3：小兔子跑步（来回跑代表加载中）</div>
+      <div class="rabbit-track">
+        <div class="rabbit">
+          <svg viewBox="0 0 40 40">
+            <ellipse cx="20" cy="25" rx="10" ry="8" fill="#fff"/>
+            <ellipse cx="15" cy="12" rx="3" ry="8" fill="#fff"/>
+            <ellipse cx="25" cy="12" rx="3" ry="8" fill="#fff"/>
+            <circle cx="16" cy="23" r="1.5" fill="#333"/>
+            <circle cx="24" cy="23" r="1.5" fill="#333"/>
+            <ellipse cx="20" cy="27" rx="2" ry="1.5" fill="#FFB6C1"/>
+          </svg>
+        </div>
+        <div class="footprints">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="tip">最有童趣，小动物跑来跑去</div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,212 @@
+/* app.wxss - 全局样式 */
+page {
+  --primary: #7B5EA7;
+  --primary-light: #9B7FC7;
+  --primary-dark: #5B3F8A;
+  --pink: #FF6B9D;
+  --orange: #FFA552;
+  --yellow: #FFD93D;
+  --green: #6BCB77;
+  --blue: #4D96FF;
+  --bg: #F5F0FF;
+  --card: #FFFFFF;
+  --text: #333333;
+  --text-light: #888888;
+  --border: #E8E0F5;
+  --input-bg: #F8F5FF;
+  --shadow: 0 6rpx 24rpx rgba(123, 94, 167, 0.08);
+  --fs: 28rpx;
+  /* 最小字号下限：约 26rpx，保证任何文字都不小于底部 tabBar 的视觉大小 */
+  --fs-sm: calc(var(--fs) * 0.94);
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--fs);
+  box-sizing: border-box;
+}
+
+view, text, image { box-sizing: border-box; }
+
+/* 通用卡片 */
+.card {
+  background: var(--card) !important;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin: 20rpx 24rpx;
+  box-shadow: var(--shadow) !important;
+  color: var(--text) !important;
+}
+
+/* 主按钮 */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+  color: #fff !important;
+  border-radius: 50rpx;
+  padding: 24rpx 0;
+  text-align: center;
+  font-size: calc(var(--fs) * 1.14) !important;
+  font-weight: 600;
+  border: none;
+}
+.btn-primary::after { border: none; }
+
+.btn-secondary {
+  background: var(--card) !important;
+  color: var(--primary) !important;
+  border: 2rpx solid var(--primary);
+  border-radius: 50rpx;
+  padding: 22rpx 0;
+  text-align: center;
+  font-size: calc(var(--fs) * 1.07) !important;
+}
+.btn-secondary::after { border: none; }
+
+.btn-danger {
+  background: #FF6B6B !important;
+  color: #fff !important;
+  border-radius: 50rpx;
+  padding: 22rpx 0;
+  text-align: center;
+  font-size: calc(var(--fs) * 1.07) !important;
+}
+.btn-danger::after { border: none; }
+
+/* 标题 */
+.page-title {
+  font-size: calc(var(--fs) * 1.3) !important;
+  font-weight: 700;
+  color: var(--primary-dark) !important;
+  padding: 30rpx 32rpx 10rpx;
+}
+
+.section-title {
+  font-size: calc(var(--fs) * 1.07) !important;
+  font-weight: 600;
+  color: var(--primary) !important;
+  padding: 20rpx 32rpx 10rpx;
+  display: flex;
+  align-items: center;
+}
+.section-title::before {
+  content: '';
+  width: 8rpx;
+  height: 28rpx;
+  background: var(--pink);
+  border-radius: 4rpx;
+  margin-right: 12rpx;
+}
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  font-size: var(--fs-sm) !important;
+  margin-right: 12rpx;
+}
+.tag-math { background: #E8F0FF; color: #4D96FF; }
+.tag-chinese { background: #FFF0E8; color: #FFA552; }
+.tag-english { background: #E8FFF0; color: #6BCB77; }
+.tag-default { background: #F0E8FF; color: var(--primary); }
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 120rpx 40rpx;
+  color: var(--text-light) !important;
+  font-size: var(--fs) !important;
+}
+.empty image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+/* flex 工具 */
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-col { display: flex; flex-direction: column; }
+
+/* 彩虹文字渐变 */
+.rainbow-text {
+  background: linear-gradient(90deg, var(--pink), var(--orange), var(--yellow), var(--green), var(--blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+/* ===== 全局覆盖：颜色与字体（!important 优先于页面级硬编码样式） ===== */
+
+/* 背景色 */
+.setting-group, .question-card, .exam-card, .wrong-card, .result-box, .settle-card,
+.score-card, .badge-item, .level-node, .practice-item, .form-card, .confirm-tip,
+.analysis-box, .wrong-section, .mode-tab, .subject-tab, .filter-chip, .quick-start,
+.search-bar, .record-item, .login-card, .option-item, .option-btn, .answer-box,
+.explanation-box, .nav-btn, .stat-card, .progress-card, .level-card, .reward-card,
+.memory-card, .subject-card, .grade-card, .filter-bar, .tab-bar, .list-item,
+.detail-card, .step-card, .reward-item, .achievement-card, .summary-card,
+.wait-card, .challenge-card, .practice-card, .exam-option, .fill-blank {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* 输入框/控件背景 */
+.setting-input, .setting-input-wrap, .form-textarea, .search-input, .answer-input,
+.chat-input, .voice-btn, .slider-wrap, .exam-row, .modal-input,
+.conn-row, .conn-add-btn {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* 主文字 */
+.setting-label, .setting-value, .knowledge, .card-question, .detail-question,
+.q-text, .practice-title, .wrong-q-mini, .tip-sub, .question-text, .answer-text,
+.explanation-text, .step-text, .record-text, .list-text, .detail-text, .card-text,
+.stat-num, .stat-label, .level-title, .reward-title, .memory-title, .subject-name,
+.grade-name, .tab-text, .filter-text, .option-text, .nav-text, .summary-text,
+.achievement-name, .badge-name, .score-text, .result-text {
+  color: var(--text) !important;
+}
+
+/* 次要文字 */
+.card-title, .detail-label, .answer-label, .analysis-label, .ov-label, .badge-desc,
+.level-name, .card-date, .record-date, .detail-meta, .version, .loading-sub,
+.tip-title, .practice-meta, .diff-tag, .card-sub, .record-sub, .detail-sub,
+.stat-sub, .level-desc, .reward-desc, .memory-desc, .subject-desc, .tab-sub,
+.hint-text, .placeholder-text, .meta-text, .sub-text, .desc-text {
+  color: var(--text-light) !important;
+}
+
+/* 边框 */
+.setting-row, .practice-item, .records, .record-item, .divider, .border-line,
+.separator, .detail-divider, .card-divider, .list-divider {
+  border-color: var(--border) !important;
+}
+
+/* 通用正文字号（用 !important 覆盖页面硬编码 rpx） */
+.setting-label, .setting-value, .card-question, .detail-question, .q-text,
+.practice-title, .wrong-q-mini, .question-text, .answer-text, .explanation-text,
+.step-text, .record-text, .list-text, .detail-text, .card-text, .subject-name,
+.grade-name, .tab-text, .filter-text, .option-text, .nav-text, .summary-text,
+.achievement-name, .badge-name, .score-text, .result-text, .modal-label,
+.modal-input, .conn-name, .knowledge, .tip-sub {
+  font-size: var(--fs) !important;
+}
+
+/* 次要文字字号 */
+.card-title, .detail-label, .answer-label, .analysis-label, .ov-label, .badge-desc,
+.level-name, .card-date, .record-date, .detail-meta, .version, .loading-sub,
+.tip-title, .practice-meta, .diff-tag, .card-sub, .record-sub, .detail-sub,
+.stat-sub, .level-desc, .reward-desc, .memory-desc, .subject-desc, .tab-sub,
+.hint-text, .meta-text, .sub-text, .desc-text, .conn-model {
+  font-size: var(--fs-sm) !important;
+}
+
+/* 大字号标题 */
+.stat-num, .score-num, .level-num, .reward-num, .big-number, .result-score {
+  font-size: calc(var(--fs) * 1.6) !important;
+}

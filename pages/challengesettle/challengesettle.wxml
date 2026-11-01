@@ -1,0 +1,47 @@
+<view class="settle-page" style="{{pageStyle}}">
+  <view class="settle-bg"></view>
+
+  <view class="settle-content">
+    <image class="settle-char" src="{{charImg}}" mode="aspectFit"></image>
+
+    <view class="settle-stars">
+      <text class="big-star {{stars>=1?'on':''}}">★</text>
+      <text class="big-star {{stars>=2?'on':''}}">★</text>
+      <text class="big-star {{stars>=3?'on':''}}">★</text>
+    </view>
+
+    <view class="settle-comment">{{comment}}</view>
+
+    <view class="score-card">
+      <view class="score-item">
+        <text class="score-num rainbow-text">{{score}}</text>
+        <text class="score-label">总得分</text>
+      </view>
+      <view class="score-divider"></view>
+      <view class="score-item">
+        <text class="score-num">{{correct}}/{{total}}</text>
+        <text class="score-label">正确率</text>
+      </view>
+    </view>
+
+    <!-- 新错题确认入库 -->
+    <view class="wrong-confirm" wx:if="{{wrongQuestions.length}}">
+      <view class="wrong-confirm-title">本次产生 {{wrongQuestions.length}} 道新错题</view>
+      <view class="wrong-list-mini">
+        <view class="wrong-item-mini" wx:for="{{wrongQuestions}}" wx:key="id">
+          <text class="wrong-q-mini">{{index+1}}. {{item.question}}</text>
+        </view>
+      </view>
+      <view class="confirm-actions">
+        <button class="btn-secondary confirm-btn" bindtap="skipWrong">跳过</button>
+        <button class="btn-primary confirm-btn" bindtap="confirmWrongToBook">存入错题本</button>
+      </view>
+    </view>
+
+    <view class="no-wrong" wx:else>
+      <text class="no-wrong-text">🎉 全部答对，没有新错题！</text>
+    </view>
+
+    <button class="btn-secondary back-btn" bindtap="goBack" wx:if="{{!wrongQuestions.length}}">返回闯关</button>
+  </view>
+</view>

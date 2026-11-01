@@ -1,0 +1,73 @@
+/* 彩虹星星进度条组件样式 */
+.progress-area {
+  position: absolute;
+  bottom: 40rpx;
+  left: 60rpx;
+  right: 60rpx;
+  z-index: 20;
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 28rpx;
+  color: #5B7BB8;
+  font-weight: 500;
+  margin-bottom: 24rpx;
+  text-shadow: 0 2rpx 4rpx rgba(255,255,255,0.8);
+}
+
+/* 轨道：透明背景 + 白色细边框 */
+.progress-track {
+  width: 100%;
+  height: 40rpx;
+  border-radius: 20rpx;
+  background: transparent;
+  border: 4rpx solid rgba(255,255,255,0.7);
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
+  position: relative;
+}
+
+/* 彩虹填充层 */
+.rainbow-fill {
+  height: 100%;
+  border-radius: 14rpx;
+  background: linear-gradient(90deg,
+    #FF6B9D 0%,
+    #FFA552 25%,
+    #FFD93D 50%,
+    #6BCB77 75%,
+    #4D96FF 100%);
+  box-shadow: 0 0 20rpx rgba(255,107,157,0.6);
+  animation: fillProgress 3s ease-in-out infinite;
+}
+
+@keyframes fillProgress {
+  0%   { width: 0%; }
+  90%  { width: 100%; }
+  100% { width: 100%; }
+}
+
+/* 跑在填充前端的星星 */
+.running-star {
+  position: absolute;
+  top: 50%;
+  width: 52rpx;
+  height: 52rpx;
+  margin-top: -26rpx;
+  z-index: 2;
+  filter: drop-shadow(0 0 12rpx #FFD93D) drop-shadow(0 0 24rpx rgba(255,217,61,0.7));
+  animation: starRun 3s ease-in-out infinite;
+}
+
+.star-inner {
+  width: 100%;
+  height: 100%;
+  background: #FFD93D;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+@keyframes starRun {
+  0%   { left: 0%; transform: translateX(-50%) scale(0.9) rotate(0deg); }
+  90%  { left: 100%; transform: translateX(-50%) scale(1.15) rotate(360deg); }
+  100% { left: 100%; transform: translateX(-50%) scale(1.15) rotate(360deg); }
+}

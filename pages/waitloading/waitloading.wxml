@@ -1,0 +1,11 @@
+<view class="wait-page" style="{{pageStyle}}">
+  <image class="wait-bg" src="{{bgImage}}" mode="aspectFill"></image>
+  <view class="wait-mask"></view>
+
+  <view class="wait-content">
+    <view class="wait-title">{{subject}} · {{count}} 道题</view>
+    <view class="wait-sub">{{grade}}</view>
+  </view>
+
+  <rainbow-progress loadingText="{{loadingText}}"></rainbow-progress>
+</view>

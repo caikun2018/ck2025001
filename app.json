@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/assistant/assistant",
+    "pages/wrongdetail/wrongdetail",
+    "pages/wrongentry/wrongentry",
+    "pages/challenge/challenge",
+    "pages/challengeplay/challengeplay",
+    "pages/challengesettle/challengesettle",
+    "pages/waitloading/waitloading",
+    "pages/practice/practice",
+    "pages/practiceexam/practiceexam",
+    "pages/practiceresult/practiceresult",
+    "pages/achievement/achievement",
+    "pages/settings/settings"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#7B5EA7",
+    "navigationBarTitleText": "错题智练",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F5F0FF"
+  },
+  "tabBar": {
+    "color": "#9B9B9B",
+    "selectedColor": "#7B5EA7",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/assistant/assistant",
+        "text": "AI 助手"
+      },
+      {
+        "pagePath": "pages/challenge/challenge",
+        "text": "闯关"
+      },
+      {
+        "pagePath": "pages/practice/practice",
+        "text": "练习"
+      },
+      {
+        "pagePath": "pages/achievement/achievement",
+        "text": "成就"
+      },
+      {
+        "pagePath": "pages/settings/settings",
+        "text": "设置"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

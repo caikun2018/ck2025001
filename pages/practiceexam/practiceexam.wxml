@@ -1,0 +1,101 @@
+<!-- 模拟考试 / 原题练习：顶部计时与进度，中间题目，底部答案栏与翻页 -->
+<view class="exam-page" style="{{pageStyle}}">
+  <!-- 顶部：左计时（考试）/ 标题（原题练习），右手写板入口 -->
+  <view class="exam-topbar">
+    <view class="timer-box" wx:if="{{mode==='exam'}}">
+      <text class="timer-icon">⏱</text>
+      <text class="timer-text">{{timeDisplay}}</text>
+    </view>
+    <view class="topbar-title" wx:else>原题练习</view>
+    <view class="top-action pad-entry" bindtap="openPad" wx:if="{{!showResult}}">✍️ 手写板</view>
+  </view>
+
+  <!-- 进度：第几题 + 进度条 -->
+  <view class="exam-progress">
+    <view class="progress-info">
+      <text class="progress-count">第 {{current+1}} / {{questions.length}} 题</text>
+      <text class="progress-tip" wx:if="{{mode==='exam'}}">交卷后统一批改</text>
+      <text class="progress-tip" wx:else>已答对 {{correctCount}} 题</text>
+    </view>
+    <view class="progress-line">
+      <view class="progress-fill" style="width: {{questions.length ? (current+1)*100/questions.length : 0}}%"></view>
+    </view>
+  </view>
+
+  <!-- 题目区 -->
+  <view class="exam-content">
+    <view class="question-card" wx:if="{{questions[current]}}">
+      <view class="question-head">
+        <view class="q-subject">{{questions[current].subject || '综合'}}</view>
+        <view class="q-knowledge" wx:if="{{questions[current].knowledge}}">{{questions[current].knowledge}}</view>
+      </view>
+      <view class="q-text">{{questions[current].question}}</view>
+      <geometry-figure wx:if="{{questions[current].figure}}" figure="{{questions[current].figure}}"></geometry-figure>
+      <view class="q-options" wx:if="{{questions[current].options && questions[current].options.length}}">
+        <view class="q-option" wx:for="{{questions[current].options}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+    <view class="exam-empty" wx:else>题目没加载出来，返回重进一次就好</view>
+  </view>
+
+  <!-- 底部：答案栏 + 翻页 -->
+  <view class="exam-footer">
+    <!-- 模拟考试：语音 / 键盘 / 手写都只记录答案 -->
+    <block wx:if="{{mode==='exam'}}">
+      <answer-bar value="{{userAnswer}}" placeholder="输入答案（考完统一批改）" reset-key="{{answerReset}}"
+        hide-echo="{{true}}" bind:change="onAnswerChange" />
+      <view class="exam-nav">
+        <button class="exam-nav-btn prev {{current===0 ? 'is-disabled' : ''}}" bindtap="prevQuestion"
+          disabled="{{current===0}}">上一题</button>
+        <button class="exam-nav-btn next" bindtap="nextQuestion" wx:if="{{current+1 < questions.length}}">下一题</button>
+        <button class="exam-nav-btn submit" bindtap="submitExam" wx:if="{{current+1 >= questions.length}}">交卷</button>
+      </view>
+    </block>
+
+    <!-- 原题练习：默认语音作答，算式图形走顶部手写板 -->
+    <block wx:else>
+      <block wx:if="{{!showResult}}">
+        <view class="pad-preview" wx:if="{{padImage}}">
+          <image class="pad-preview-img" src="{{padImage}}" mode="aspectFit"></image>
+          <view class="pad-preview-info">
+            <text>已添加手写作答</text>
+            <text class="pad-preview-remove" bindtap="removePadImage">删除重写</text>
+          </view>
+        </view>
+        <view class="retry-hint" wx:if="{{retryHint}}">{{retryHint}}</view>
+        <answer-bar value="{{userAnswer}}" placeholder="输入你的答案" submit-text="提交" disabled="{{grading}}"
+          reset-key="{{answerReset}}" hide-echo="{{true}}" bind:change="onAnswerChange" bind:submit="submitOriginal" />
+        <view class="answer-tip" wx:if="{{!padImage}}">优先语音说答案；算式、竖式、图形点顶部「✍️ 手写板」</view>
+      </block>
+      <block wx:else>
+        <view class="result-feedback {{isCorrect?'right':'wrong'}}">
+          {{isCorrect ? '✅ 答对了！' : (showAnswer ? '❌ 再想想，看看解析吧' : '❌ 答错了，再试一次')}}
+        </view>
+        <view class="recognized" wx:if="{{recognizedAnswer}}">AI 识别到：{{recognizedAnswer}}</view>
+        <view class="my-answer" wx:if="{{userAnswer}}">我的答案：{{userAnswer}}</view>
+        <view class="answer-detail" wx:if="{{showAnswer}}">
+          <view>正确答案：{{questions[current].correctAnswer}}</view>
+          <view class="exp">解析：{{questions[current].analysis}}</view>
+        </view>
+        <button class="btn-primary next-btn" bindtap="nextQuestion">
+          {{current+1 >= questions.length ? '完成练习' : '下一题'}}
+        </button>
+      </block>
+    </block>
+  </view>
+
+  <!-- 手写板：可在「手写」与「看题目」两个视图间切换 -->
+  <handwriting-pad visible="{{showPad}}" bind:done="onPadDone" bind:close="closePad">
+    <view slot="peek" class="pad-question" wx:if="{{questions[current]}}">
+      <view class="question-head">
+        <view class="q-subject">{{questions[current].subject || '综合'}}</view>
+        <view class="q-knowledge" wx:if="{{questions[current].knowledge}}">{{questions[current].knowledge}}</view>
+      </view>
+      <view class="q-text">{{questions[current].question}}</view>
+      <geometry-figure wx:if="{{questions[current].figure}}" figure="{{questions[current].figure}}"></geometry-figure>
+      <view class="q-options" wx:if="{{questions[current].options && questions[current].options.length}}">
+        <view class="q-option" wx:for="{{questions[current].options}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+  </handwriting-pad>
+</view>

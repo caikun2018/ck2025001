@@ -1,0 +1,149 @@
+<view class="settings-page" style="{{pageStyle}}">
+  <!-- 用户信息 -->
+  <view class="user-card">
+    <image class="avatar" src="/assets/01_主角色/可爱卡通风格Q版小女孩主角_小学四年级女生形象_扎着双马尾辫_2026-10-24T02-23-47.jpg" mode="aspectFit"></image>
+    <view class="user-info">
+      <view class="username">{{userInfo.username || '未登录'}}</view>
+      <view class="user-grade">{{currentGrade}}</view>
+    </view>
+  </view>
+
+  <!-- 模型设置 -->
+  <view class="section-head">
+    <view class="section-title">模型设置</view>
+    <text class="head-action" bindtap="openAddModal">+ 新增模型连接</text>
+  </view>
+  <view class="setting-group">
+    <block wx:if="{{connections.length > 0}}">
+      <view wx:for="{{connections}}" wx:key="id"
+            class="conn-row {{item.selected ? 'conn-active' : ''}}"
+            bindtap="selectConnection" data-id="{{item.id}}">
+        <view class="conn-info">
+          <view class="conn-name">
+            {{item.name}}
+            <text class="conn-type conn-type-{{item.type}}">{{item.typeLabel}}</text>
+          </view>
+          <view class="conn-model">{{item.model}}</view>
+        </view>
+        <view class="conn-actions">
+          <text class="conn-check" wx:if="{{item.selected}}">✓</text>
+          <text class="conn-del" catchtap="deleteConnection" data-id="{{item.id}}">✕</text>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="conn-empty">暂无模型连接，点击右上角「+ 新增模型连接」添加</view>
+  </view>
+
+  <!-- 新增连接（全屏面板） -->
+  <view class="modal-mask" wx:if="{{showAddModal}}">
+    <view class="modal-box">
+      <view class="modal-head">
+        <text class="modal-head-cancel" bindtap="closeAddModal">取消</text>
+        <text class="modal-title">新增模型连接</text>
+        <text class="modal-head-cancel modal-head-ph"></text>
+      </view>
+      <view class="modal-body">
+        <view class="modal-field">
+          <picker mode="selector" range="{{typeOptions}}" value="{{typeIndex}}" bindchange="onNewTypeChange">
+            <view class="modal-select-row">
+              <text class="modal-label select-label">用途类型</text>
+              <view class="modal-select-value">{{typeOptions[typeIndex]}} ›</view>
+            </view>
+          </picker>
+        </view>
+        <view class="modal-field">
+          <picker mode="selector" range="{{providers}}" range-key="name" value="{{providerIndex}}" bindchange="onQuickProvider">
+            <view class="modal-select-row">
+              <text class="modal-label select-label">供应商名称</text>
+              <view class="modal-select-value">{{newName}} ›</view>
+            </view>
+          </picker>
+        </view>
+        <view class="modal-field">
+          <text class="modal-label">Base URL</text>
+          <input class="modal-input" placeholder="https://api.deepseek.com/v1" value="{{newBaseUrl}}" bindinput="onNewBaseUrlInput" adjust-position="{{false}}" />
+        </view>
+        <view class="modal-field">
+          <view class="modal-input-row">
+            <picker wx:if="{{fetchedModels.length > 0}}" class="flex-1" mode="selector" range="{{fetchedModels}}" value="{{fetchedModelIndex}}" bindchange="onFetchedModelChange">
+              <view class="modal-select-row">
+                <text class="modal-label select-label">模型名称</text>
+                <view class="modal-select-value">{{fetchedModels[fetchedModelIndex]}} ›</view>
+              </view>
+            </picker>
+            <block wx:else>
+              <text class="modal-label select-label">模型名称</text>
+              <input class="modal-input flex-1" placeholder="sensenova-6.8-flash-lite" value="{{newModel}}" bindinput="onNewModelInput" adjust-position="{{false}}" />
+            </block>
+            <text class="modal-fetch" bindtap="fetchModelsForModal">获取</text>
+          </view>
+        </view>
+        <view class="modal-field">
+          <text class="modal-label">API Key</text>
+          <view class="modal-input-row">
+            <input class="modal-input flex-1" placeholder="sk-..." password="{{newKeyHidden}}" value="{{newKey}}" bindinput="onNewKeyInput" adjust-position="{{false}}" />
+            <text class="modal-paste" bindtap="pasteNewKey">粘贴</text>
+            <text class="modal-eye" bindtap="toggleNewKeyVisible">{{newKeyHidden ? '👁' : '🙈'}}</text>
+          </view>
+        </view>
+        <view class="modal-actions">
+          <button class="btn-secondary small-btn" bindtap="testModalConnection">测试连接</button>
+          <button class="btn-primary small-btn" bindtap="saveNewConnection">保存</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 乐享知识库同步 -->
+  <view class="section-head">
+    <view class="section-title">乐享知识库</view>
+    <text class="head-action {{syncing ? 'head-action-busy' : ''}}" bindtap="syncLexiang">{{syncing ? '同步中…' : '立即同步'}}</text>
+  </view>
+
+  <!-- 年级设置 -->
+  <view class="section-title">年级设置</view>
+  <view class="setting-group">
+    <view class="setting-row">
+      <text class="setting-label">当前年级</text>
+      <picker mode="selector" range="{{grades}}" value="{{gradeIndex}}" bindchange="onGradeChange">
+        <view class="setting-value highlight">{{currentGrade}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 显示设置 -->
+  <view class="section-title">显示设置</view>
+  <view class="setting-group">
+    <view class="setting-row slider-row">
+      <text class="setting-label">字体大小</text>
+      <view class="slider-wrap">
+        <slider min="28" max="40" step="2" value="{{fontSize}}" show-value bindchange="onFontSizeChange" />
+      </view>
+    </view>
+    <view class="setting-row">
+      <text class="setting-label">夜间模式</text>
+      <switch checked="{{darkMode}}" bindchange="onDarkModeChange" color="#7B5EA7" />
+    </view>
+  </view>
+  <view class="section-tip-row">
+    <text class="section-tip-text">字号和夜间模式会自动同步到乐享「设置」页，换手机带回来（模型 Key 不同步）</text>
+  </view>
+  <view class="section-sync-row">
+    <text class="section-tip-link" bindtap="restoreSettingsFromCloud">取回云端</text>
+    <text class="section-tip-link" bindtap="pushSettingsToCloud">上传本机</text>
+  </view>
+
+  <!-- 其他 -->
+  <view class="section-title">账号与缓存</view>
+  <view class="setting-group">
+    <view class="setting-row" bindtap="clearCache">
+      <text class="setting-label">清除本地缓存</text>
+      <text class="setting-arrow">›</text>
+    </view>
+    <view class="setting-row logout" bindtap="logout">
+      <text class="setting-label logout-text">退出登录</text>
+    </view>
+  </view>
+
+  <view class="version">错题智练 v0.4 · 自家孩子专用</view>
+</view>

@@ -1,0 +1,549 @@
+.ai-chat {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  pointer-events: none;
+}
+
+/* 带原生 tabBar 的页面：底边避开 tabBar */
+.ai-chat.has-tabbar {
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+}
+/* 展开时全屏（tabBar 已隐藏），不再需要偏移 */
+.ai-chat.expanded {
+  bottom: 0;
+}
+
+/* 整页嵌入（学习助手 Tab）：页面可视区已经不含原生 tabBar，直接贴到页面底边，
+   不再额外抬高 100rpx，否则输入栏和 tabBar 之间会留一条空白横条 */
+.ai-chat.embedded {
+  top: 0;
+  bottom: 0;
+  pointer-events: auto;
+}
+.ai-chat.embedded .chat-panel,
+.ai-chat.embedded .chat-panel.show {
+  position: relative;
+  height: 100%;
+}
+/* 嵌入时输入栏下沿就是 tabBar，不需要再让出安全区 */
+.ai-chat.embedded .chat-input-bar {
+  padding-bottom: 16rpx;
+}
+/* 嵌入时归档层铺满，但顶部让出页面自定义标题栏 */
+.ai-chat.embedded .archive-page {
+  top: var(--top-inset, 0px);
+  bottom: 0;
+}
+
+/* 展开面板 */
+.chat-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: #fff;
+  overflow: hidden;
+  transition: height 0.25s ease;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+/* 仿微信聊天：展开即全屏 */
+.chat-panel.show {
+  height: 100vh;
+}
+
+
+/* scroll-view 在 flex 列里必须能收缩，否则内容多时会把下方输入栏挤出面板 */
+.chat-messages {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24rpx;
+  background: #F8F5FF;
+}
+
+.msg {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+.msg.user { justify-content: flex-end; }
+.msg.assistant { justify-content: flex-start; }
+
+.bubble {
+  max-width: 84%;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: var(--fs, 28rpx);
+  line-height: 1.5;
+  word-break: break-all;
+}
+.msg.user .bubble {
+  background: linear-gradient(135deg, #7B5EA7, #9B7FC7);
+  color: #fff;
+  border-bottom-right-radius: 8rpx;
+}
+/* AI 回答常含步骤、公式，几乎占满整行，减少无谓换行 */
+.msg.assistant .bubble {
+  max-width: 97%;
+  background: #fff;
+  color: #333;
+  border-bottom-left-radius: 8rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+.msg-img {
+  width: 300rpx;
+  height: 300rpx;
+  border-radius: 16rpx;
+}
+/* 文件消息：文件名 + 解析状态 */
+.file-name {
+  display: block;
+  word-break: break-all;
+}
+.file-state {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--fs-sm);
+  opacity: 0.8;
+}
+.file-state.fail {
+  color: #FFD9D9;
+  opacity: 1;
+}
+/* 流式过程中先用纯文本，保留换行；结束后换成 rich-text */
+.bubble-plain {
+  white-space: pre-wrap;
+  font-size: var(--fs, 28rpx);
+  line-height: 1.75;
+  word-break: break-all;
+}
+.bubble rich-text {
+  display: block;
+  word-break: break-all;
+}
+
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.typing .dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #9B7FC7;
+  animation: typing 1.2s infinite;
+}
+.typing .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-8rpx); opacity: 1; }
+}
+
+.chat-input-bar {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 20rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #f0f0f0;
+  gap: 14rpx;
+}
+.icon-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
+.chat-input {
+  flex: 1;
+  height: 80rpx;
+  background: #F5F0FF;
+  border-radius: 40rpx;
+  padding: 0 26rpx;
+  font-size: var(--fs, 28rpx);
+}
+/* 「按住 说话」：按钮更高更宽，文字比底部 tabBar 还大一号 */
+.voice-btn {
+  flex: 1;
+  height: 92rpx;
+  background: #F5F0FF;
+  border-radius: 46rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--fs, 28rpx) * 1.15);
+  color: #7B5EA7;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+}
+.voice-btn.recording {
+  background: #FF6B9D;
+  color: #fff;
+}
+.voice-btn.disabled {
+  opacity: 0.65;
+}
+.send-btn {
+  padding: 16rpx 30rpx;
+  background: linear-gradient(135deg, #7B5EA7, #9B7FC7);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: var(--fs, 28rpx);
+  font-weight: 600;
+}
+/* AI 回复中：输入框与发送按钮置灰，视觉上明确不能发 */
+.chat-input.disabled {
+  opacity: 0.55;
+  color: #999;
+}
+.send-btn.disabled {
+  opacity: 0.5;
+  background: #C9BBDD;
+}
+
+/* 输入栏右侧「＋」：点开再选图片 / 文件 */
+.plus-btn {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  line-height: 1;
+  color: #7B5EA7;
+  background: #F0E8FF;
+}
+.plus-btn.disabled {
+  opacity: 0.5;
+}
+
+/* ===== 录音悬浮提示：按住说话时浮在对话面板中间 ===== */
+.rec-mask {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  width: 420rpx;
+  box-sizing: border-box;
+  padding: 34rpx 28rpx 28rpx;
+  background: rgba(90, 66, 130, 0.94);
+  border-radius: 32rpx;
+  box-shadow: 0 16rpx 48rpx rgba(60, 36, 96, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* 麦克风：几个 view 拼出来，不用图片素材 */
+.rec-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.rec-mic {
+  position: relative;
+  width: 130rpx;
+  height: 130rpx;
+}
+.rec-halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100rpx;
+  height: 100rpx;
+  margin: -50rpx 0 0 -50rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  animation: recHalo 1.8s ease-out infinite;
+}
+.rec-halo.late {
+  animation-delay: 0.9s;
+}
+.rec-head {
+  position: absolute;
+  left: 50rpx;
+  top: 26rpx;
+  width: 30rpx;
+  height: 44rpx;
+  border-radius: 15rpx;
+  background: #fff;
+}
+.rec-arc {
+  position: absolute;
+  left: 35rpx;
+  top: 44rpx;
+  width: 60rpx;
+  height: 32rpx;
+  box-sizing: border-box;
+  border: 6rpx solid #fff;
+  border-top: none;
+  border-radius: 0 0 32rpx 32rpx;
+}
+.rec-stem {
+  position: absolute;
+  left: 62rpx;
+  top: 76rpx;
+  width: 6rpx;
+  height: 16rpx;
+  background: #fff;
+}
+.rec-base {
+  position: absolute;
+  left: 48rpx;
+  top: 92rpx;
+  width: 34rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background: #fff;
+}
+
+/* 音量音柱：高低跳动，表示正在收音 */
+.rec-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 10rpx;
+  height: 44rpx;
+  margin-top: 6rpx;
+}
+.rec-bar {
+  width: 10rpx;
+  height: 44rpx;
+  border-radius: 5rpx;
+  background: #fff;
+  transform-origin: bottom;
+  animation: recWave 0.9s ease-in-out infinite;
+}
+.rec-bar.b2 {
+  animation-delay: 0.15s;
+}
+.rec-bar.b3 {
+  animation-delay: 0.3s;
+}
+.rec-bar.b4 {
+  animation-delay: 0.45s;
+}
+.rec-bar.b5 {
+  animation-delay: 0.6s;
+}
+
+.rec-tip {
+  margin-top: 16rpx;
+  font-size: var(--fs, 28rpx);
+  font-weight: 600;
+  color: #fff;
+}
+.rec-sub {
+  margin-top: 6rpx;
+  font-size: var(--fs-sm, 26rpx);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@keyframes recHalo {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+@keyframes recWave {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+/* 输入栏左侧：语音/键盘切换（文字加大，手指好点） */
+.mode-btn {
+  flex-shrink: 0;
+  height: 80rpx;
+  padding: 0 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--fs, 28rpx) * 1.05);
+  font-weight: 600;
+  color: #7B5EA7;
+  background: #fff;
+  border: 1rpx solid #D9C7F5;
+  border-radius: 20rpx;
+}
+.mode-btn.disabled {
+  opacity: 0.5;
+}
+
+/* ===== 归档确认（全屏） ===== */
+.archive-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  pointer-events: auto;
+  background: #F5F0FF;
+  display: flex;
+  flex-direction: column;
+}
+.archive-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  background: linear-gradient(135deg, #7B5EA7, #9B7FC7);
+  color: #fff;
+}
+.archive-title { font-size: 32rpx; font-weight: 600; }
+.archive-cancel { font-size: var(--fs-sm); opacity: 0.9; }
+
+.archive-body {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24rpx 24rpx 0;
+}
+.archive-tip {
+  font-size: var(--fs-sm);
+  color: #8A7BA8;
+  margin-bottom: 20rpx;
+  padding-left: 8rpx;
+}
+.archive-sub {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: #7B5EA7;
+  margin: 24rpx 0 16rpx 8rpx;
+}
+.archive-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(123, 94, 167, 0.08);
+}
+.card-head {
+  display: flex;
+  align-items: center;
+}
+.card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+.card-tag {
+  margin-left: 12rpx;
+  font-size: var(--fs-sm);
+  color: #7B5EA7;
+  background: #F0E8FF;
+  padding: 4rpx 14rpx;
+  border-radius: 16rpx;
+}
+.card-body {
+  margin-top: 16rpx;
+  padding-left: 60rpx;
+}
+.card-text {
+  font-size: var(--fs-sm);
+  color: #444;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.card-text.muted { color: #888; margin-top: 8rpx; }
+.card-text.strong { color: #333; font-weight: 600; margin-bottom: 8rpx; }
+.card-loading { font-size: var(--fs-sm); color: #8A7BA8; }
+.card-error { font-size: var(--fs-sm); color: #E05B5B; }
+
+/* 自绘复选框 */
+.cb {
+  position: relative;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 10rpx;
+  border: 3rpx solid #C9B6E4;
+  background: #fff;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+/* 透明热区：视觉还是 40rpx，可点范围扩到 76rpx（别删，不然又要点很多次） */
+.cb::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 76rpx;
+  height: 76rpx;
+  transform: translate(-50%, -50%);
+  border-radius: 16rpx;
+}
+.cb.on {
+  background: #7B5EA7;
+  border-color: #7B5EA7;
+}
+.cb.on::after {
+  content: '';
+  position: absolute;
+  left: 12rpx;
+  top: 5rpx;
+  width: 10rpx;
+  height: 18rpx;
+  border-right: 4rpx solid #fff;
+  border-bottom: 4rpx solid #fff;
+  transform: rotate(45deg);
+}
+/* 强制项：勾选不可取消，视觉上弱化 */
+.cb.locked {
+  opacity: 0.7;
+}
+
+.archive-empty {
+  font-size: var(--fs-sm);
+  color: #8A7BA8;
+  text-align: center;
+  padding: 40rpx 20rpx;
+}
+.archive-bottom-gap { height: 40rpx; }
+
+.archive-footer {
+  flex-shrink: 0;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #EEE6FA;
+}
+.archive-btn {
+  height: 88rpx;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7B5EA7, #9B7FC7);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+

@@ -1,0 +1,23 @@
+# 个人与调试配置：含真实凭证，用 utils/config.example.js 代替
+utils/config.js
+
+# 内部文档：含真实账号、真实目录坐标与内部决策，不随源码发布
+PRD.md
+CODEBUDDY.md
+
+# 开发者工具私有配置
+project.private.config.json
+
+# WorkBuddy 工作区数据 / 常驻规则
+.workbuddy/
+.codebuddy/
+
+# 通用忽略
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.env
+.env.*
+!.env.example

@@ -1,0 +1,42 @@
+<view class="achievement-page" style="{{pageStyle}}">
+  <!-- 消退总览 -->
+  <view class="overview-card">
+    <view class="overview-ring">
+      <view class="ring-progress" style="background: conic-gradient(#6BCB77 {{stats.total>0 ? stats.faded/stats.total*360 : 0}}deg, #F0E8FF 0deg)">
+        <view class="ring-inner">
+          <text class="ring-num">{{stats.faded}}</text>
+          <text class="ring-label">已消退</text>
+        </view>
+      </view>
+    </view>
+    <view class="overview-info">
+      <view class="overview-row">
+        <text class="ov-num">{{stats.total}}</text>
+        <text class="ov-label">在册错题</text>
+      </view>
+      <view class="overview-row">
+        <text class="ov-num">{{stats.challengeCount}}</text>
+        <text class="ov-label">闯关次数</text>
+      </view>
+      <view class="overview-row">
+        <text class="ov-num">{{stats.streak}}</text>
+        <text class="ov-label">连续打卡</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-title">徽章墙</view>
+  <view class="badge-grid">
+    <view class="badge-item {{item.unlocked ? '' : 'locked'}}" wx:for="{{badges}}" wx:key="name">
+      <image class="badge-img" src="{{badgeImages[item.img]}}" mode="aspectFit"></image>
+      <view class="badge-name">{{item.name}}</view>
+      <view class="badge-desc">{{item.desc}}</view>
+      <view class="badge-status" wx:if="{{!item.unlocked}}">未解锁</view>
+    </view>
+  </view>
+
+  <view class="tip">
+    <text>💡 错题连续答对 5 次、或同一知识点的不同题目累计答对 5 次，都会自动消退</text>
+  </view>
+
+</view>

@@ -1,0 +1,28 @@
+<view class="login-page" style="{{pageStyle}}">
+  <view class="login-bg">
+    <image class="logo" src="/assets/01_主角色/可爱卡通风格Q版小女孩主角_小学四年级女生形象_扎着双马尾辫_2026-10-24T02-23-47.jpg" mode="aspectFit"></image>
+    <view class="app-name rainbow-text">错题智练</view>
+    <view class="app-slogan">AI 错题学习好帮手</view>
+  </view>
+
+  <view class="login-card">
+    <view class="input-group">
+      <text class="input-label">用户名</text>
+      <input class="input" placeholder="请输入用户名" value="{{username}}" bindinput="onUsernameInput" />
+    </view>
+    <view class="input-group">
+      <text class="input-label">密码</text>
+      <input class="input" placeholder="请输入密码" password value="{{password}}" bindinput="onPasswordInput" />
+    </view>
+    <view class="remember-row">
+      <checkbox-group bindchange="onRememberChange">
+        <label class="remember-label">
+          <checkbox value="1" checked="{{rememberMe}}" color="#7B5EA7" />
+          <text>记住密码</text>
+        </label>
+      </checkbox-group>
+    </view>
+    <button class="btn-primary login-btn" bindtap="onLogin" loading="{{loading}}">登 录</button>
+    <view class="login-tip">自家孩子专用 · 账号由家长配置</view>
+  </view>
+</view>

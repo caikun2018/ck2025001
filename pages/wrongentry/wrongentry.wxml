@@ -1,0 +1,64 @@
+<view class="entry-page" style="{{pageStyle}}">
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <image class="loading-char" src="/assets/01_主角色/表情动作/03_思考灵感灯泡.jpg" mode="aspectFit"></image>
+    <view class="loading-text">{{loadingText}}</view>
+    <view class="loading-sub">{{loadingSub}}</view>
+  </view>
+
+  <!-- 拍照预览 -->
+  <view class="photo-preview" wx:if="{{imagePath && !loading && !result}}">
+    <image class="preview-img" src="{{imagePath}}" mode="aspectFit"></image>
+  </view>
+
+  <!-- 确认门：AI 整理结果预览 -->
+  <view class="confirm-area" wx:if="{{result && !loading}}">
+    <view class="confirm-tip">
+      <image class="tip-icon" src="/assets/01_主角色/表情动作/05_抱星星开心.jpg" mode="aspectFit"></image>
+      <view>
+        <view class="tip-title">AI 已整理完成，请确认后入库</view>
+        <view class="tip-sub">如有错误可直接修改字段</view>
+      </view>
+    </view>
+
+    <view class="form-card">
+      <view class="form-row">
+        <text class="form-label">学科</text>
+        <picker mode="selector" range="{{subjects}}" value="{{subjectIndex}}" bindchange="onSubjectChange">
+          <view class="form-picker">{{result.subject}}</view>
+        </picker>
+      </view>
+      <view class="form-row">
+        <text class="form-label">知识点</text>
+        <input class="form-input" value="{{result.knowledge}}" data-field="knowledge" bindinput="onFieldChange" />
+      </view>
+      <view class="form-row col">
+        <text class="form-label">题干</text>
+        <textarea class="form-textarea" value="{{result.question}}" data-field="question" bindinput="onFieldChange"></textarea>
+      </view>
+      <view class="form-row">
+        <text class="form-label">我的答案</text>
+        <input class="form-input" value="{{result.myAnswer}}" data-field="myAnswer" bindinput="onFieldChange" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">正确答案</text>
+        <input class="form-input" value="{{result.correctAnswer}}" data-field="correctAnswer" bindinput="onFieldChange" />
+      </view>
+      <view class="form-row col">
+        <text class="form-label">错因分析</text>
+        <textarea class="form-textarea" value="{{result.analysis}}" data-field="analysis" bindinput="onFieldChange"></textarea>
+      </view>
+      <view class="form-row">
+        <text class="form-label">难度</text>
+        <picker mode="selector" range="{{difficulties}}" value="{{difficultyIndex}}" bindchange="onDifficultyChange">
+          <view class="form-picker">{{result.difficulty}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="entry-actions">
+      <button class="btn-secondary entry-btn" bindtap="onRetake">重新拍照</button>
+      <button class="btn-primary entry-btn" bindtap="onConfirm">确认入库</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "闯关做题",
+  "navigationBarBackgroundColor": "#7B5EA7",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "geometry-figure": "/components/geometry-figure/geometry-figure",
+    "handwriting-pad": "/components/handwriting-pad/handwriting-pad",
+    "answer-bar": "/components/answer-bar/answer-bar"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "rainbow-progress": "/components/rainbow-progress/rainbow-progress"
+  }
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>彩虹星星路径动画 - SVG精确版</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f0f0f5;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .phone-frame {
+    width: 375px;
+    height: 667px;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  .bg-image {
+    position: absolute;
+    inset: 0;
+    background-image: url('../assets/03_等待界面/10_骑飞马飞翔.png');
+    background-size: cover;
+    background-position: center;
+  }
+  .svg-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+  }
+  .loading-text {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 15px;
+    color: #5B7BB8;
+    font-weight: 500;
+    z-index: 20;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  }
+</style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="bg-image"></div>
+
+    <svg class="svg-layer" viewBox="0 0 375 667" preserveAspectRatio="none">
+      <!-- 彩虹轨迹路径（精确对齐图片上的彩虹弧线）
+           起点：彩虹左端 ~ (53, 153)
+           拱顶：彩虹顶端 ~ (188, 33)
+           终点：彩虹右端 ~ (345, 167)
+           用贝塞尔曲线画平滑弧线 -->
+      <path id="rainbowPath" d="M 53 153 Q 120 30, 188 33 T 345 167"
+            fill="none" stroke="none"/>
+
+      <!-- 沿路径移动的星星 -->
+      <g>
+        <!-- 星星本体：和原图上的大黄星同款圆润五角星 -->
+        <path d="M 0 -18 L 5.5 -5.5 L 19 -5.5 L 8 3.5 L 12 17 L 0 9 L -12 17 L -8 3.5 L -19 -5.5 L -5.5 -5.5 Z"
+              fill="#FFD93D" stroke="#F0B820" stroke-width="1.5" stroke-linejoin="round"/>
+        <!-- 发光光晕 -->
+        <circle cx="0" cy="0" r="22" fill="url(#glow)" opacity="0.4"/>
+
+        <!-- 路径动画：沿着彩虹从左滑到右 -->
+        <animateMotion dur="3.5s" repeatCount="indefinite"
+                       rotate="auto" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+          <mpath href="#rainbowPath"/>
+        </animateMotion>
+        <!-- 淡入淡出 -->
+        <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite"/>
+        <!-- 大小脉动 -->
+        <animateTransform attributeName="transform" type="scale" values="1;1.15;1" dur="0.8s" repeatCount="indefinite" additive="sum"/>
+      </g>
+
+      <!-- 拖尾小光点 -->
+      <g opacity="0.6">
+        <circle cx="0" cy="0" r="4" fill="#FFF5CC">
+          <animateMotion dur="3.5s" begin="0.2s" repeatCount="indefinite">
+            <mpath href="#rainbowPath"/>
+          </animateMotion>
+        </circle>
+      </g>
+      <g opacity="0.4">
+        <circle cx="0" cy="0" r="3" fill="#FFF5CC">
+          <animateMotion dur="3.5s" begin="0.4s" repeatCount="indefinite">
+            <mpath href="#rainbowPath"/>
+          </animateMotion>
+        </circle>
+      </g>
+      <g opacity="0.2">
+        <circle cx="0" cy="0" r="2" fill="#FFF5CC">
+          <animateMotion dur="3.5s" begin="0.6s" repeatCount="indefinite">
+            <mpath href="#rainbowPath"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- 发光渐变定义 -->
+      <defs>
+        <radialGradient id="glow">
+          <stop offset="0%" stop-color="#FFE066" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#FFE066" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+    </svg>
+
+    <div class="loading-text">AI 正在出题中...</div>
+  </div>
+</body>
+</html>

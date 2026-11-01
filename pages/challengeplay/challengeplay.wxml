@@ -1,0 +1,83 @@
+<!-- 题目卡片模板：正式答题区与手写板「看题目」视图共用 -->
+<template name="questionCard">
+  <view class="question-head">
+    <view class="question-subject">{{subject}}</view>
+    <view class="question-knowledge">{{q.knowledge}}</view>
+  </view>
+  <view class="question-text">{{q.question}}</view>
+  <geometry-figure wx:if="{{q.figure}}" figure="{{q.figure}}"></geometry-figure>
+  <view class="q-options" wx:if="{{q.options && q.options.length}}">
+    <view class="q-option" wx:for="{{q.options}}" wx:key="*this">{{item}}</view>
+  </view>
+</template>
+
+<view class="play-page" style="{{pageStyle}}">
+  <image class="play-bg" src="{{levelBg}}" mode="aspectFill"></image>
+  <view class="play-mask"></view>
+
+  <view class="play-content">
+    <!-- 顶部操作：退出 / 手写板 / 提交答案 -->
+    <view class="play-topbar">
+      <view class="top-action exit-entry" bindtap="exitChallenge">✕ 退出</view>
+      <view class="top-action pad-entry" bindtap="openPad" wx:if="{{!showResult}}">✍️ 手写板</view>
+      <view class="top-action submit-top {{grading ? 'disabled' : ''}}" bindtap="submitAnswer" wx:if="{{!showResult}}">
+        {{grading ? '判题中...' : '提交答案'}}
+      </view>
+    </view>
+
+    <!-- 顶部进度 -->
+    <view class="play-header">
+      <view class="progress-info">
+        <text>第 {{current+1}} / {{questions.length}} 题</text>
+        <text>得分：{{score}}</text>
+      </view>
+      <view class="progress-line">
+        <view class="progress-fill" style="width: {{(current+1)/questions.length*100}}%"></view>
+      </view>
+    </view>
+
+    <!-- 题目 -->
+    <view class="question-card">
+      <template is="questionCard" data="{{subject: (questions[current] && questions[current].subject) || subject, q: questions[current]}}" />
+    </view>
+
+    <!-- 答题区：输入方式与 AI 助手一致，默认语音，算式图形走顶部手写板 -->
+    <view class="answer-area" wx:if="{{!showResult}}">
+      <view class="pad-preview" wx:if="{{padImage}}">
+        <image class="pad-preview-img" src="{{padImage}}" mode="aspectFit"></image>
+        <view class="pad-preview-info">
+          <text>已添加手写作答</text>
+          <text class="pad-preview-remove" bindtap="removePadImage">删除重写</text>
+        </view>
+      </view>
+      <answer-bar value="{{userAnswer}}" placeholder="输入答案" reset-key="{{answerReset}}" hide-echo="{{true}}" bind:change="onAnswerChange" />
+    </view>
+
+    <!-- 结果反馈 -->
+    <view class="result-area" wx:if="{{showResult}}">
+      <view class="result-box {{isCorrect ? 'right' : 'wrong'}}">
+        <view class="result-icon">{{isCorrect ? '🎉' : '💪'}}</view>
+        <view class="result-text">{{isCorrect ? '答对啦！太棒了！' : '答错了，没关系~'}}</view>
+        <view class="result-recognized" wx:if="{{resultRecognized}}">
+          <text class="result-label">AI 识别到：</text>
+          <text>{{resultRecognized}}</text>
+        </view>
+        <view class="result-feedback" wx:if="{{resultFeedback}}">{{resultFeedback}}</view>
+        <view class="result-answer" wx:if="{{!isCorrect}}">
+          <view>正确答案：{{resultAnswer}}</view>
+          <view class="result-exp">解析：{{resultExplanation}}</view>
+        </view>
+      </view>
+      <button class="btn-primary next-btn" bindtap="nextQuestion">
+        {{current+1 >= questions.length ? '查看结算' : '下一题'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 手写板（可在「手写」与「看题目」两个视图间切换） -->
+  <handwriting-pad visible="{{showPad}}" bind:done="onPadDone" bind:close="closePad">
+    <view slot="peek" class="pad-question">
+      <template is="questionCard" data="{{subject: (questions[current] && questions[current].subject) || subject, q: questions[current]}}" />
+    </view>
+  </handwriting-pad>
+</view>

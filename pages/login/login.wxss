@@ -1,0 +1,88 @@
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #E8DCFF 0%, #F5F0FF 60%);
+  padding: 80rpx 48rpx 48rpx;
+}
+
+.login-bg {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.logo {
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  box-shadow: 0 12rpx 40rpx rgba(123, 94, 167, 0.25);
+  background: #fff;
+}
+
+.app-name {
+  font-size: 56rpx;
+  margin-top: 24rpx;
+  letter-spacing: 6rpx;
+}
+
+.app-slogan {
+  font-size: var(--fs-sm);
+  color: #9B7FC7;
+  margin-top: 8rpx;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 48rpx 40rpx;
+  box-shadow: 0 12rpx 40rpx rgba(123, 94, 167, 0.12);
+}
+
+.input-group {
+  margin-bottom: 32rpx;
+}
+
+.input-label {
+  display: block;
+  font-size: var(--fs-sm);
+  color: #7B5EA7;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.input {
+  width: 100%;
+  height: 88rpx;
+  background: #F8F5FF;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  border: 2rpx solid transparent;
+}
+.input:focus {
+  border-color: #9B7FC7;
+  background: #fff;
+}
+
+.login-btn {
+  margin-top: 20rpx;
+}
+
+.remember-row {
+  margin-bottom: 24rpx;
+}
+.remember-label {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-sm);
+  color: #7B5EA7;
+}
+.remember-label checkbox {
+  transform: scale(0.8);
+  margin-right: 8rpx;
+}
+
+.login-tip {
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: #BBB;
+  margin-top: 24rpx;
+}

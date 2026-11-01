@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "答题",
+  "usingComponents": {
+    "geometry-figure": "/components/geometry-figure/geometry-figure",
+    "handwriting-pad": "/components/handwriting-pad/handwriting-pad",
+    "answer-bar": "/components/answer-bar/answer-bar"
+  }
+}

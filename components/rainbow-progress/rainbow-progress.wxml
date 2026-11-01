@@ -1,0 +1,10 @@
+<!-- 彩虹星星进度条组件 - 等待界面底部使用 -->
+<view class="progress-area">
+  <view class="loading-text">{{loadingText}}</view>
+  <view class="progress-track">
+    <view class="rainbow-fill"></view>
+    <view class="running-star">
+      <view class="star-inner"></view>
+    </view>
+  </view>
+</view>

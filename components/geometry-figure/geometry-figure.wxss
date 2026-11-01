@@ -1,0 +1,12 @@
+.geometry-figure {
+  width: 100%;
+  height: 320rpx;
+  margin: 16rpx 0 8rpx;
+  background: #FAF7FF;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+.fig-canvas {
+  width: 100%;
+  height: 100%;
+}

@@ -1,0 +1,47 @@
+<!-- 答题输入栏：和 AI 助手底部一致，默认语音，左侧按钮切键盘 -->
+<view class="answer-bar">
+  <!-- 录音悬浮提示：按住说话时浮在屏幕中间，麦克风呼吸圈 + 音柱跳动，表示正在录入 -->
+  <view class="rec-mask" wx:if="{{recording}}">
+    <view class="rec-card">
+      <view class="rec-mic">
+        <view class="rec-halo"></view>
+        <view class="rec-halo late"></view>
+        <view class="rec-head"></view>
+        <view class="rec-arc"></view>
+        <view class="rec-stem"></view>
+        <view class="rec-base"></view>
+      </view>
+      <view class="rec-wave">
+        <view class="rec-bar b1"></view>
+        <view class="rec-bar b2"></view>
+        <view class="rec-bar b3"></view>
+        <view class="rec-bar b4"></view>
+        <view class="rec-bar b5"></view>
+      </view>
+      <view class="rec-tip">正在听你说… {{voiceSeconds}}s</view>
+      <view class="rec-sub">松开手指结束录音</view>
+    </view>
+  </view>
+
+  <!-- 语音模式没有输入框，用一行回显让用户看到自己说了什么 -->
+  <view class="echo {{value ? 'has' : ''}}" wx:if="{{inputMode === 'voice' && !hideEcho}}">
+    <text class="echo-label">🎤 我听到：</text>
+    <text class="echo-text">{{value || '按住下面的按钮，说出你的答案'}}</text>
+  </view>
+
+  <view class="bar">
+    <view class="mode-btn {{recording || transcribing ? 'disabled' : ''}}" catchtap="switchInput">
+      {{inputMode === 'voice' ? '键盘' : '语音'}}
+    </view>
+
+    <view wx:if="{{inputMode === 'voice'}}"
+      class="voice-btn {{recording ? 'recording' : ''}} {{transcribing ? 'disabled' : ''}}"
+      catchtouchstart="startRecord" catchtouchend="stopRecord" catchtouchcancel="stopRecord">
+      {{transcribing ? '识别中...' : (recording ? '松开 结束 ' + voiceSeconds + 's' : '按住 说话')}}
+    </view>
+    <input wx:else class="bar-input" placeholder="{{placeholder}}" value="{{value}}" bindinput="onInput"
+      confirm-type="done" cursor-spacing="24" />
+
+    <view class="send-btn {{disabled ? 'disabled' : ''}}" wx:if="{{submitText}}" catchtap="onSubmit">{{submitText}}</view>
+  </view>
+</view>
