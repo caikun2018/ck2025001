@@ -32,6 +32,14 @@ const setTransport = (t) => {
 
 const hasProxy = () => !!(config.LEXIANG_PROXY_URL && config.LEXIANG_PROXY_URL !== 'your-workers-url')
 
+// 公网代理的共享密钥请求头：SCF / Worker 侧会校验 x-proxy-key，
+// 避免函数 URL 被扫描器拿到后白嫖 token。密钥放在本地 utils/config.js（不入库）。
+const proxyHeaders = () => {
+  const header = { 'Content-Type': 'application/json' }
+  if (config.LEXIANG_PROXY_KEY) header['x-proxy-key'] = config.LEXIANG_PROXY_KEY
+  return header
+}
+
 const hasCloud = () => {
   const env = config.CLOUD_ENV_ID
   return !!(env && env !== 'your-cloud-env-id' && wx.cloud && wx.cloud.callFunction)
@@ -109,7 +117,7 @@ const proxyToken = () => {
     wx.request({
       url: config.LEXIANG_PROXY_URL,
       method: 'POST',
-      header: { 'Content-Type': 'application/json' },
+      header: proxyHeaders(),
       data: { action: 'token' },
       success: res => {
         const result = res.data || {}
@@ -253,7 +261,7 @@ const proxyApiRequest = (method, path, data, query) => {
     wx.request({
       url: config.LEXIANG_PROXY_URL,
       method: 'POST',
-      header: { 'Content-Type': 'application/json' },
+      header: proxyHeaders(),
       data: payload,
       success: res => {
         const result = res.data || {}

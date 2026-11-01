@@ -18,6 +18,11 @@ const CLOUD_ENV_ID = ''
 // 若填写，需在小程序后台把该域名加入 request 合法域名。
 const LEXIANG_PROXY_URL = ''
 
+// 公网代理的调用方校验密钥（与 SCF / Worker 环境变量 LX_PROXY_KEY 保持一致）
+// 公网部署时**必须**设置：否则任何人拿到函数 URL 就能换 token 读写你的知识库。
+// 留空表示不带该校验头（仅本地调试用）
+const LEXIANG_PROXY_KEY = ''
+
 // 乐享开放平台凭证
 // appKey / appSecret 在「乐享开放平台 → 我的应用」获取，用于换取 access_token（2 小时有效，代码内自动缓存刷新）
 // teamId / spaceId / 各 entryId 是你在乐享知识库里的目录坐标，需自行建好结构后填入
@@ -104,6 +109,7 @@ const textbookSummary = () => Object.keys(TEXTBOOK_BY_SUBJECT)
 module.exports = {
   CLOUD_ENV_ID,
   LEXIANG_PROXY_URL,
+  LEXIANG_PROXY_KEY,
   LEXIANG,
   LLM_PROVIDERS,
   PRESET_ACCOUNTS,

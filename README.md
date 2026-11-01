@@ -46,6 +46,8 @@
 
 三者协议一致（`{action: 'token' | 'request'}`），凭证统一通过环境变量 `LX_APP_KEY` / `LX_APP_SECRET` / `LX_STAFF_ID` 提供。
 
+**调用方校验密钥 `LX_PROXY_KEY` 必须一并配置**：服务端配成环境变量，小程序端在 `config.js` 里用同值填写 `LEXIANG_PROXY_KEY`，请求头为 `x-proxy-key`。未配置时服务端会拒绝所有请求（这是刻意的安全默认值）—— 不加这道校验，任何人都能用你的函数 URL 换到 token。
+
 ## 安全须知（请务必阅读）
 
 - `utils/config.js` **已在 `.gitignore` 中**，因为里面要填真实凭证。请只提交 `config.example.js`

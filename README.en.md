@@ -46,6 +46,8 @@ A WeChat Mini Program cannot customize its User-Agent on real devices, and the L
 
 All three speak the same protocol (`{action: 'token' | 'request'}`) and read credentials from the environment variables `LX_APP_KEY` / `LX_APP_SECRET` / `LX_STAFF_ID`.
 
+**You must also configure the caller verification key `LX_PROXY_KEY`**: set it as a server environment variable, and put the same value into `LEXIANG_PROXY_KEY` in your Mini Program `config.js`; it is sent as the `x-proxy-key` header. Without it the server rejects every request (an intentional secure default) — with no such check, anyone holding your function URL can trade it for a token.
+
 ## Security notes (please read first)
 
 - `utils/config.js` is **gitignored** because it holds your real credentials. Commit only `config.example.js`

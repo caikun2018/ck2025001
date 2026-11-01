@@ -52,12 +52,27 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type, x-proxy-key'
     }
 
     // 处理 OPTIONS 预检请求
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders })
+    }
+
+    // 预检放行后先校验调用方：Worker 地址公开后任何人都能换 token
+    const proxyKey = env.LX_PROXY_KEY || ''
+    if (!proxyKey) {
+      return new Response(JSON.stringify({ success: false, error: '缺少 LX_PROXY_KEY：请为该 Worker 配置调用方校验密钥' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401
+      })
+    }
+    if ((request.headers.get('x-proxy-key') || '') !== proxyKey) {
+      return new Response(JSON.stringify({ success: false, error: '未授权：缺少或错误的 x-proxy-key' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401
+      })
     }
 
     try {

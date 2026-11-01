@@ -18,11 +18,32 @@
 // 凭证可用环境变量覆盖：LX_APP_KEY / LX_APP_SECRET / LX_STAFF_ID
 
 const https = require('https')
+const crypto = require('crypto')
 
 // 凭证只在环境变量里提供，代码中不保存任何明文
 const APP_KEY = process.env.LX_APP_KEY || ''
 const APP_SECRET = process.env.LX_APP_SECRET || ''
 const STAFF_ID = process.env.LX_STAFF_ID || ''
+
+// 调用方校验密钥：函数 URL 一旦公开，任何人都能换 token 读写知识库。
+// 必须在云函数环境变量里配置 LX_PROXY_KEY，小程序端用同值放请求头 x-proxy-key。
+const PROXY_KEY = process.env.LX_PROXY_KEY || ''
+
+// 定长比较，避免按字节提前返回带来的时序差异
+function keyMatches(got) {
+  if (!PROXY_KEY || !got) return false
+  const a = Buffer.from(String(got))
+  const b = Buffer.from(PROXY_KEY)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
+// 返回空字符串表示通过，否则返回拒绝原因
+function authFailure(event) {
+  if (!PROXY_KEY) return '服务端未配置 LX_PROXY_KEY，出于安全已拒绝所有请求'
+  const h = event.headers || {}
+  const got = h['x-proxy-key'] || h['X-Proxy-Key'] || h['X-PROXY-KEY'] || ''
+  return keyMatches(got) ? '' : '未授权：缺少或错误的 x-proxy-key'
+}
 
 const BASE_URL = 'https://lxapi.lexiangla.com/cgi-bin/v1'
 const TOKEN_URL = 'https://lxapi.lexiangla.com/cgi-bin/token'
@@ -108,6 +129,10 @@ exports.main_handler = async (event) => {
 
   const httpMethod = (event.requestContext && event.requestContext.http && event.requestContext.http.method) || event.httpMethod || 'POST'
   if (httpMethod === 'OPTIONS') return reply(200, { success: true })
+
+  // 预检放行之后、碰任何业务逻辑之前，先校验调用方
+  const denied = authFailure(event)
+  if (denied) return reply(401, { success: false, error: denied })
 
   const payload = parseBody(event)
   const action = payload.action
