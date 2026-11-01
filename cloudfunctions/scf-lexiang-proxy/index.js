@@ -4,11 +4,16 @@
 //
 // 部署步骤（腾讯云函数 SCF，有免费额度，国内可直接访问）：
 // 1. 登录 https://console.cloud.tencent.com/scf → 新建云函数 → 选择「从头开始」
-// 2. 运行环境选 Node.js 16 或 18，函数代码直接粘贴本文件
-// 3. 创建后进入「函数管理 → 函数URL」，开启函数 URL（认证类型选「无认证」）
-// 4. 复制函数 URL（形如 https://xxx-xxxx.gz.tencentcs.com/release/）
-// 5. 填入小程序 utils/config.js 的 LEXIANG_PROXY_URL
-// 6. 在微信公众平台「开发管理 → 服务器域名 → request 合法域名」加入该域名
+// 2. 运行环境选 Node.js 16 或 18，函数代码直接粘贴本文件，超时时间建议 20 秒
+// 3. 在「函数管理 → 函数配置 → 环境变量」添加：
+//      LX_APP_KEY / LX_APP_SECRET / LX_STAFF_ID  —— 乐享凭证
+//      LX_PROXY_KEY                              —— 调用方校验密钥（必填，见下）
+// 4. 进入「函数管理 → 函数URL」，开启函数 URL。
+//    认证类型必须选「无认证」：小程序 wx.request 无法对函数 URL 做签名认证，
+//    开着认证反而调不通。所以安全性由 LX_PROXY_KEY 承担 —— 不配这个变量，本函数会拒绝所有请求。
+// 5. 复制函数 URL（形如 https://xxx-xxxx.gz.tencentcs.com/release/）
+// 6. 填入小程序 utils/config.js 的 LEXIANG_PROXY_URL，并把同一个 LX_PROXY_KEY 值填进 LEXIANG_PROXY_KEY
+// 7. 在微信公众平台「开发管理 → 服务器域名 → request 合法域名」加入该域名
 //
 // 请求约定（与 lexiang.js 保持一致）：
 //   { action: 'token' }                         -> { success, token }
@@ -118,7 +123,7 @@ exports.main_handler = async (event) => {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
+    'Access-Control-Allow-Headers': 'Content-Type, x-proxy-key'
   }
   const reply = (statusCode, obj) => ({
     statusCode,

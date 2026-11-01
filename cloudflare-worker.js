@@ -6,7 +6,11 @@
 // 1. 注册 Cloudflare 账号（免费）
 // 2. 在 Workers & Pages 中创建新 Worker
 // 3. 粘贴此代码并部署
-// 4. 把 Worker 的 URL（如 https://lexiang-proxy.xxx.workers.dev）填入小程序 config.js
+// 4. 在 Worker 的「Settings → Variables and Secrets」添加四个变量（前三个是凭证，最后一个是校验密钥）：
+//      LX_APP_KEY / LX_APP_SECRET / LX_STAFF_ID / LX_PROXY_KEY
+//    建议都用 Secret（加密）类型。没配 LX_PROXY_KEY 时会拒绝所有请求，这是刻意的安全默认值。
+// 5. 把 Worker 的 URL（如 https://lexiang-proxy.xxx.workers.dev）填入小程序 config.js 的 LEXIANG_PROXY_URL，
+//    并把同一个 LX_PROXY_KEY 值填进 LEXIANG_PROXY_KEY
 
 // 乐享凭证：统一从 Workers Secrets 读取，代码中不保存任何明文凭据
 // 部署后在控制台「Settings → Variables and Secrets」添加 LX_APP_KEY / LX_APP_SECRET / LX_STAFF_ID

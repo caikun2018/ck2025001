@@ -21,39 +21,253 @@
 - LLM：任意 OpenAI 兼容接口的模型（`utils/config.example.js` 已内置十余家供应商）
 - 文档解析：`utils/fileParser.js` 内置 docx / xlsx / pptx / pdf 解析，DEFLATE 解压依据 RFC 1951 自行实现，不依赖第三方库
 
-## 快速开始
+## 目录结构
 
-1. 微信开发者工具「导入项目」，选择本仓库根目录
-2. 复制配置模板并填入你自己的值：
+| 路径 | 作用 |
+| --- | --- |
+| `app.js` / `app.json` / `app.wxss` | 入口、页面注册与全局样式 |
+| `pages/` | 13 个页面（登录、AI 助手、错题录入/详情、闯关、练习、成就、设置等） |
+| `services/lexiang.js` | 知识库读写与同步（token、目录、错题、学习记忆、题库、进度） |
+| `services/llm.js` | 模型调用（含流式与视觉） |
+| `services/bank.js` / `progress.js` / `storage.js` / `auth.js` | 题库预热、学习进度、本地缓存、登录 |
+| `utils/config.js` | 你的配置（模板为 `config.example.js`，本体不入库） |
+| `utils/fileParser.js` / `crypto.js` / `util.js` | 文档解析、本地混淆、通用工具 |
+| `cloudfunctions/lexiang-proxy/` | 微信云开发云函数代理（推荐） |
+| `cloudfunctions/scf-lexiang-proxy/` | 腾讯云 SCF 代理 |
+| `cloudflare-worker.js` | Cloudflare Workers 代理 |
+| `tools/lexiang-check.js` | 部署自检脚本：验证凭证与知识库坐标 |
+| `assets/` | AI 生成插画（不在 MIT 授权范围内） |
 
-   ```bash
-   cp utils/config.example.js utils/config.js
-   ```
+## 部署指南
 
-3. 在乐享开放平台创建应用，拿到 `appKey` / `appSecret`；在乐享知识库里按上述层级建好目录，把 `entryId` 填进 `config.js`
-4. 部署代理：右键 `cloudfunctions/lexiang-proxy` →「上传并部署：云端安装依赖」，并在云函数环境变量里配置凭证
-5. 编译预览
+> 从零到真机跑通约 40~60 分钟。请按顺序执行，**第 3、4 步最容易卡住**。
+> 每步末尾都给了可验证的结果，卡住时先查 [排错对照表](#排错对照表)。
 
-### 为什么需要代理
+### 第 0 步：准备清单
 
-微信小程序真机无法自定义 User-Agent，乐享 WAF 会拦截移动端 UA 返回 404，因此真机请求需服务端转发。仓库提供三种通道，任选其一：
-
-| 通道 | 目录 | 适用场景 |
+| 需要什么 | 用途 | 是否必须 |
 | --- | --- | --- |
-| 微信云函数 | `cloudfunctions/lexiang-proxy` | 推荐，小程序原生集成 |
-| 腾讯云 SCF | `cloudfunctions/scf-lexiang-proxy` | 国内访问、有免费额度 |
-| Cloudflare Workers | `cloudflare-worker.js` | 已有 Cloudflare 账号时 |
+| 微信小程序 AppID | 导入项目、真机预览、发布 | 必须（个人主体即可注册） |
+| 乐享帐号 + 开放平台应用 | 错题、学习记忆、题库的唯一存储位置 | 必须 |
+| 一个 OpenAI 兼容的 LLM API Key | 出题、讲解、判题 | 必须 |
+| API 代理（微信云开发 / 腾讯云 SCF / Cloudflare 三选一） | 绕过乐享 WAF | 真机必须 |
+| Node.js ≥ 16 | 跑部署自检脚本、生成密钥 | 建议 |
+
+先说一个容易误判的点：**只在开发者工具里预览时，可以不配代理**（工具内可直连乐享）；**真机一定需要代理**，原因见 [为什么需要代理](#为什么需要代理)。
+
+### 第 1 步：导入项目
+
+1. 微信开发者工具 → 「导入项目」→ 目录选择本仓库根目录
+2. **AppID 必须换成你自己的**。仓库内 `project.config.json` 带的是作者 AppID，沿用会导致云开发环境与代码上传都落到别人帐号下。
+   - 有自己的 AppID：直接填
+   - 没有：点「测试号」。注意**测试号无法使用云开发**，只能走 SCF 或 Cloudflare 通道
+3. 不要执行 `npm install` —— 本仓库无 npm 依赖；`package.json` 只存在于云函数目录内，由云端安装
+
+### 第 2 步：生成配置文件
+
+```bash
+cp utils/config.example.js utils/config.js
+```
+
+`utils/config.js` 已在 `.gitignore` 中，可以放心填真实凭证；仓库里只保留脱敏模板 `config.example.js`。
+
+### 第 3 步：准备乐享知识库（最容易卡住）
+
+这一步要拿到 5 个值：`appKey`、`appSecret`、`teamId`、`spaceId`、`rootEntryId`。
+
+**3.1 建应用，拿 appKey / appSecret**
+
+登录乐享开放平台 → 「我的应用」→ 新建应用。复制 `appKey` 与 `appSecret` 保存下来 —— 它们等同于知识库的读写权限，**不要提交到任何仓库**。
+
+**3.2 拿 teamId**
+
+`teamId` 是团队 ID，形如 `1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d`。在乐享网页端的团队设置里可以找到；如果手里有这个值，下一步一条命令就能把知识库坐标全部查出来。
+
+**3.3 一条命令拿到 spaceId 与 rootEntryId**
+
+先把 `teamId` 填进 `config.js`，然后执行：
+
+```bash
+node tools/lexiang-check.js --spaces
+```
+
+输出形如：
+
+```
+共 1 个知识库：
+
+  示例知识库              spaceId     = 0f1e2d3c4b5a69788796a5b4c3d2e1f0
+                    rootEntryId = 9f8e7d6c5b4a39281706f5e4d3c2b1a0
+```
+
+把这两个值填进 `config.js` 的 `spaceId` 与 `rootEntryId`。也可以直接把 teamId 作为参数传入：`node tools/lexiang-check.js --spaces <teamId>`。
+
+> 如果该接口在你的帐号版本下不可用，改用手动方式：在乐享网页端打开知识库，按 F12 → Network，任一 `/kb/` 请求的 query 里都带 `space_id`；`rootEntryId` 用下一步的 `--list` 查。
+
+**3.4 建年级目录（学科目录不用建）**
+
+在知识库里建一个以年级命名的文件夹，例如「四年级」。
+
+- 四年级：把它的 ID 填进 `grade4EntryId`
+- 其他年级：不必填，代码会按登录时选的年级名在根节点下查找同名文件夹（找不到会退到根节点并打 `未找到年级目录` 警告）
+
+**学科目录（错题 / 学习记忆 / 题库）不需要手工创建** —— 首次归档时小程序会自动在年级目录下建好。想固定下来，也可以手工建好再把 ID 填进 `subjects`。
+
+**3.5 两个可选页（不建则对应功能不可用）**
+
+- 「身份和习惯」页面 → 填 `identityEntryId`
+- 「会话记录」文件夹 → 填 `sessionEntryId`
+
+**3.6 验证**
+
+```bash
+node tools/lexiang-check.js
+```
+
+全部 `[ OK ]`、结论为「凭证与知识库坐标全部可用」才继续。这一步能省掉后面 80% 的调试时间。
+
+### 第 4 步：部署 API 代理
+
+#### 为什么需要代理
+
+微信小程序真机无法自定义 User-Agent，乐享 WAF 会拦截移动端 UA 返回 404，因此真机请求需服务端转发。开发者工具带桌面 UA 可直连 —— 所以「工具里正常、真机白屏」是正常现象，不是代码 bug。
+
+三种通道任选其一：
+
+| 通道 | 代码位置 | 需要配置 | 适用场景 |
+| --- | --- | --- | --- |
+| 微信云函数 | `cloudfunctions/lexiang-proxy` | `CLOUD_ENV_ID` | **推荐**，不用域名备案，调用天然带微信侧鉴权 |
+| 腾讯云 SCF | `cloudfunctions/scf-lexiang-proxy` | `LEXIANG_PROXY_URL` + `LEXIANG_PROXY_KEY` | 国内访问快、有免费额度 |
+| Cloudflare Workers | `cloudflare-worker.js` | 同上 | 已有 Cloudflare 帐号 |
 
 三者协议一致（`{action: 'token' | 'request'}`），凭证统一通过环境变量 `LX_APP_KEY` / `LX_APP_SECRET` / `LX_STAFF_ID` 提供。
 
-**调用方校验密钥 `LX_PROXY_KEY` 必须一并配置**：服务端配成环境变量，小程序端在 `config.js` 里用同值填写 `LEXIANG_PROXY_KEY`，请求头为 `x-proxy-key`。未配置时服务端会拒绝所有请求（这是刻意的安全默认值）—— 不加这道校验，任何人都能用你的函数 URL 换到 token。
+两个公网方案还需要一个调用方校验密钥，先生成：
+
+```bash
+node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+```
+
+#### 方案 A：微信云函数（推荐）
+
+1. 开发者工具左侧「云开发」→ 开通环境（按量付费，个人测试基本在免费额度内）
+2. 复制环境 ID（形如 `cloud1-xxxxxxxx`）→ 填进 `config.js` 的 `CLOUD_ENV_ID`
+3. 右键 `cloudfunctions/lexiang-proxy` → 「上传并部署：云端安装依赖」
+4. 云开发控制台 → 云函数 → `lexiang-proxy` → 配置 → 环境变量，添加 `LX_APP_KEY`、`LX_APP_SECRET`、`LX_STAFF_ID`
+5. 改完环境变量后重新部署一次，在云函数「测试」页发 `{"action":"token"}`，能返回 token 即通
+
+云函数由微信调用链鉴权，只有你这个小程序的用户能调到，因此**不需要** `LX_PROXY_KEY`。若打算开放给他人使用，建议再加 `OPENID` 白名单。
+
+#### 方案 B：腾讯云 SCF
+
+1. 登录 [SCF 控制台](https://console.cloud.tencent.com/scf) → 新建云函数 → 「从头开始」
+2. 运行环境 Node.js 16 或 18；**超时时间改为 20 秒**（默认 3 秒不够归档一页错题）
+3. 把 `cloudfunctions/scf-lexiang-proxy/index.js` 全文粘贴进在线编辑器 → 部署
+4. 函数配置 → 环境变量，添加四个：`LX_APP_KEY`、`LX_APP_SECRET`、`LX_STAFF_ID`、`LX_PROXY_KEY`（上一步生成的值）
+5. 函数管理 → 函数 URL → 开启。**认证类型选「无认证」**：小程序 `wx.request` 无法对函数 URL 做签名认证，开着反而调不通，安全性由 `LX_PROXY_KEY` 承担
+6. 复制函数 URL（形如 `https://xxx-xxxx.gz.tencentcs.com/release/`），填进 `config.js`：`LEXIANG_PROXY_URL` 填该 URL，`LEXIANG_PROXY_KEY` 填同一个密钥
+7. 用 curl 自测（换成你的 URL 与密钥），返回 `{"success":true,...}` 即通：
+
+   ```bash
+   curl -X POST "https://xxx-xxxx.gz.tencentcs.com/release/" \
+     -H "Content-Type: application/json" \
+     -H "x-proxy-key: 你的密钥" \
+     -d '{"action":"token"}'
+   ```
+
+`LX_PROXY_KEY` 未配置时该函数**拒绝所有请求**，这是刻意的安全默认值：宁可关死，也不让函数 URL 裸奔在公网上。
+
+#### 方案 C：Cloudflare Workers
+
+1. 注册 Cloudflare → Workers & Pages → 创建 Worker
+2. 粘贴 `cloudflare-worker.js` → 部署
+3. Settings → Variables and Secrets，添加 `LX_APP_KEY`、`LX_APP_SECRET`、`LX_STAFF_ID`、`LX_PROXY_KEY`（建议都用加密类型）
+4. 复制 Worker URL（形如 `https://xxx.workers.dev`）→ 填进 `LEXIANG_PROXY_URL`，同一密钥填进 `LEXIANG_PROXY_KEY`
+
+### 第 5 步：回填 config.js
+
+对照下表把值填全，字段含义见 [配置字段参考](#配置字段参考)：
+
+| 字段 | 方案 A | 方案 B/C |
+| --- | --- | --- |
+| `CLOUD_ENV_ID` | 必填 | 留空 |
+| `LEXIANG_PROXY_URL` | 留空 | 必填 |
+| `LEXIANG_PROXY_KEY` | 留空 | 必填 |
+| `LEXIANG.appKey` / `staffId` / `spaceId` / `rootEntryId` | 必填 | 必填 |
+| `LEXIANG.appSecret` | **建议留空** | **建议留空** |
+| `PRESET_ACCOUNTS` | 改成自己的账号 | 改成自己的账号 |
+
+`appSecret` 留空时客户端不会直连乐享，只走代理通道，凭证只存在于服务端 —— 这是推荐姿态。
+
+### 第 6 步：配置 request 合法域名
+
+正式版必须配，否则真机所有网络请求都会被拦：
+
+- **代理域名**：`LEXIANG_PROXY_URL` 的域名（SCF 为 `*.gz.tencentcs.com`，Worker 为 `*.workers.dev`）
+- **LLM 域名**：模型请求由小程序客户端**直连**、不走代理，因此每家供应商的域名都要加。常用清单：
+  `api.deepseek.com`、`dashscope.aliyuncs.com`、`api.moonshot.cn`、`ark.cn-beijing.volces.com`、`open.bigmodel.cn`、`api.siliconflow.cn`、`api.hunyuan.cloud.tencent.com`、`aip.baidubce.com`、`token.sensenova.cn`、`api.stepfun.com`
+
+配置位置：微信公众平台 → 开发管理 → 开发设置 → 服务器域名 → request 合法域名。
+
+开发者工具里可以先勾「不校验合法域名」跑通，**但上传正式版后这个开关无效**。
+
+### 第 7 步：分三段自检
+
+| 阶段 | 做什么 | 通过标准 |
+| --- | --- | --- |
+| 1 电脑 | `node tools/lexiang-check.js` | 全部 `[ OK ]` |
+| 2 开发者工具 | 编译 → 设置页添加模型连接（填 Key）→ 录入一条错题 | 控制台出现 `[lexiang] 传输方式切换为: cloud / http`，错题出现在乐享对应目录 |
+| 3 真机 | 点「预览」扫码 → 重复第 2 阶段 | 同上。若只有这一步失败，问题一定出在代理 |
+
+### 第 8 步：发布
+
+1. 开发者工具 → 上传 → 填版本号与备注
+2. 微信公众平台 → 版本管理 → 提交审核
+3. 审核通过后「发布」
+
+注意：登录走的是 `config.js` 里 `PRESET_ACCOUNTS` 的**本地校验**，账号密码会随包分发。公开给别人用之前，务必改为服务端校验。
+
+## 配置字段参考
+
+| 字段 | 必填 | 说明 / 从哪来 |
+| --- | --- | --- |
+| `CLOUD_ENV_ID` | 方案 A 必填 | 云开发环境 ID，云开发控制台「环境设置」 |
+| `LEXIANG_PROXY_URL` | 方案 B/C 必填 | 代理公网地址 |
+| `LEXIANG_PROXY_KEY` | 方案 B/C 必填 | 与服务端环境变量 `LX_PROXY_KEY` 同值 |
+| `LEXIANG.appKey` | 必填 | 乐享开放平台应用 |
+| `LEXIANG.appSecret` | 建议留空 | 填了会打进小程序包，可被解包还原 |
+| `LEXIANG.staffId` | 必填 | 乐享成员帐号，作为 `x-staff-id` 请求头 |
+| `LEXIANG.spaceId` | 必填 | 知识库 ID，`--spaces` 可查 |
+| `LEXIANG.rootEntryId` | 必填 | 知识库根节点，`--spaces` 可查 |
+| `LEXIANG.teamId` | 否 | 小程序运行不使用，仅供 `--spaces` 反查 |
+| `LEXIANG.identityEntryId` | 否 | 「身份和习惯」页面 |
+| `LEXIANG.sessionEntryId` | 否 | 「会话记录」文件夹 |
+| `LEXIANG.grade4EntryId` | 否 | 「四年级」文件夹 |
+| `LEXIANG.subjects.*` | 否 | 留空则运行时自动创建 |
+| `PRESET_ACCOUNTS` | 必填 | 登录账号，改成你自己的 |
+
+## 排错对照表
+
+| 现象 / 报错 | 原因 | 处理 |
+| --- | --- | --- |
+| `未授权：缺少或错误的 x-proxy-key` | 两端密钥不一致 | `config.js` 的 `LEXIANG_PROXY_KEY` 与云函数环境变量 `LX_PROXY_KEY` 改为同一个值 |
+| `服务端未配置 LX_PROXY_KEY，出于安全已拒绝所有请求` | SCF 未配环境变量 | 函数配置 → 环境变量新增后重新部署 |
+| `缺少 LX_PROXY_KEY：请为该 Worker 配置调用方校验密钥` | Worker 未配变量 | Settings → Variables and Secrets 添加 |
+| `未配置可用代理（请填写 CLOUD_ENV_ID…）` | 两条通道都没配 | 回到第 4 步 |
+| `token 获取失败（HTTP 401/403）` | appKey / appSecret 错，或凭证已轮换 | 开放平台重新核对 |
+| `创建科目「X」失败` | spaceId 错、应用无该知识库权限、`staffId` 为空 | 用 `lexiang-check.js` 复检 |
+| 真机报 `直连被拦截（404）` | WAF 拦截移动端 UA | 属正常，配代理即可 |
+| 工具里正常、真机白屏 | 未配代理，或域名未加白 | 第 4、6 步 |
+| 页面图片空白 | `assets/` 素材缺失 | 从仓库重新拉取完整目录 |
 
 ## 安全须知（请务必阅读）
 
 - `utils/config.js` **已在 `.gitignore` 中**，因为里面要填真实凭证。请只提交 `config.example.js`
-- 小程序的 `appSecret` 等同知识库完整读写权，**建议留空**，改由云函数环境变量提供（留空时 `lexiang.js` 会自动走云函数通道）
+- 小程序的 `appSecret` 等同知识库完整读写权，**建议留空**，改由云函数环境变量提供（留空时 `lexiang.js` 会自动走云函数/代理通道）
 - 凭证一旦进入 Git 历史即视为已泄露，删除文件无效，必须到开放平台重新签发
-- **三种代理默认都没有调用方鉴权**。部署到公网后（SCF 函数 URL 选「无认证」、或 Cloudflare Worker），任何人只要知道地址就能换到 token、进而读写你的知识库。上线前请自行加校验：微信云函数用 `OPENID` 白名单，公网代理用共享密钥请求头 + 限流
+- **公网代理（SCF 函数 URL、Cloudflare Worker）必须配置 `LX_PROXY_KEY`**。未配置时本仓库的代码会拒绝所有请求；一旦你自行去掉了这道校验，任何人知道地址就能换到 token、进而读写你的知识库
+- 微信云函数方案虽由微信侧鉴权，但同 AppID 下的用户仍可调用；多人使用前请加 `OPENID` 白名单
+- `utils/crypto.js` 只是可逆混淆（XOR），**不是加密**。它用于避免本地缓存里的 Key 以明文形式出现，请不要当作安全边界
 
 ## 素材授权范围
 

@@ -25,19 +25,23 @@ const LEXIANG_PROXY_KEY = ''
 
 // 乐享开放平台凭证
 // appKey / appSecret 在「乐享开放平台 → 我的应用」获取，用于换取 access_token（2 小时有效，代码内自动缓存刷新）
-// teamId / spaceId / 各 entryId 是你在乐享知识库里的目录坐标，需自行建好结构后填入
+// teamId / spaceId / 各 entryId 是你在乐享知识库里的目录坐标
+//
+// 快速取值：填好 teamId 后执行 node tools/lexiang-check.js --spaces
+//          会把 spaceId 与 rootEntryId 一并列出来，照着填即可
 const LEXIANG = {
   appKey: '',
   appSecret: '',            // 建议留空，改由云函数环境变量提供
-  teamId: '',
+  teamId: '',               // 团队 ID；小程序运行不用它，仅用于 --spaces 反查坐标
   staffId: '',              // 乐享成员帐号，创建/修改知识节点时作为操作者
-  spaceId: '',
+  spaceId: '',              // 知识库 ID
   rootEntryId: '',          // 知识库根节点
   // 根级全局
-  identityEntryId: '',      // 身份和习惯
-  sessionEntryId: '',       // 会话记录文件夹
-  // 年级分层：每个年级一个文件夹
+  identityEntryId: '',      // 身份和习惯（页面，可选）
+  sessionEntryId: '',       // 会话记录（文件夹，可选）
+  // 年级分层：每个年级一个文件夹；四年级可在此直接指定，其余年级按名称自动查找
   grade4EntryId: '',
+  // 学科目录可全部留空：首次归档时会在年级目录下自动创建 错题/学习记忆/题库
   subjects: {
     // 每个学科三项：entryId（学科目录）、memoryId（学习记忆页）、wrongId（错题目录）
     '语文': { entryId: '', memoryId: '', wrongId: '' },
