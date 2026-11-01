@@ -1,8 +1,10 @@
 # 错题智练
 
+[English](./README.en.md) | 简体中文
+
 面向小学生的 AI 错题学习闭环微信小程序：**拍照或口述录入错题 → 归档到乐享知识库 → AI 举一反三出题（闯关 / 模拟考试 / 原题练习）→ 连续答对达标自动消退**。
 
-原生微信小程序，**无框架、无 npm 依赖、无构建步骤**，导入开发者工具即可运行。
+原生微信小程序开发，**无框架、无 npm 依赖、无构建步骤**，导入开发者工具即可运行。
 
 ## 功能链路
 
@@ -14,9 +16,9 @@
 
 ## 技术栈
 
-- 微信小程序原生开发（`COMPONENT`-free，无第三方 UI 库）
+- 微信小程序原生开发（无第三方 UI 库）
 - 存储：**乐享知识库**为唯一可信源，本地 `storage` 做缓存加速层
-- LLM：任意 OpenAI 兼容接口的模型（已在 `utils/config.example.js` 内置十余家供应商）
+- LLM：任意 OpenAI 兼容接口的模型（`utils/config.example.js` 已内置十余家供应商）
 - 文档解析：`utils/fileParser.js` 内置 docx / xlsx / pptx / pdf 解析，DEFLATE 解压依据 RFC 1951 自行实现，不依赖第三方库
 
 ## 快速开始
@@ -28,8 +30,8 @@
    cp utils/config.example.js utils/config.js
    ```
 
-3. 在乐享开放平台创建应用，拿到 `appKey` / `appSecret`，在乐享知识库里按上述层级建好目录，把 `entryId` 填进 `config.js`
-4. 部署代理：右键 `cloudfunctions/lexiang-proxy` →「上传并部署」，并在云函数环境变量里配置凭证
+3. 在乐享开放平台创建应用，拿到 `appKey` / `appSecret`；在乐享知识库里按上述层级建好目录，把 `entryId` 填进 `config.js`
+4. 部署代理：右键 `cloudfunctions/lexiang-proxy` →「上传并部署：云端安装依赖」，并在云函数环境变量里配置凭证
 5. 编译预览
 
 ### 为什么需要代理
@@ -49,6 +51,7 @@
 - `utils/config.js` **已在 `.gitignore` 中**，因为里面要填真实凭证。请只提交 `config.example.js`
 - 小程序的 `appSecret` 等同知识库完整读写权，**建议留空**，改由云函数环境变量提供（留空时 `lexiang.js` 会自动走云函数通道）
 - 凭证一旦进入 Git 历史即视为已泄露，删除文件无效，必须到开放平台重新签发
+- **三种代理默认都没有调用方鉴权**。部署到公网后（SCF 函数 URL 选「无认证」、或 Cloudflare Worker），任何人只要知道地址就能换到 token、进而读写你的知识库。上线前请自行加校验：微信云函数用 `OPENID` 白名单，公网代理用共享密钥请求头 + 限流
 
 ## 素材授权范围
 
