@@ -54,7 +54,7 @@ Built on native WeChat Mini Program APIs. **No framework, no npm dependencies, n
 | Item | Purpose | Required |
 | --- | --- | --- |
 | WeChat Mini Program AppID | Import, device preview, release | Yes (an individual account works) |
-| Lexiang account + an open-platform app | The only place wrong answers, study memory and question banks live | Yes |
+| Lexiang account (**free tier works**) + a set of API credentials | The only place wrong answers, study memory and question banks live | Yes |
 | An OpenAI-compatible LLM API key | Question generation, explanations, grading | Yes |
 | An API proxy (WeChat Cloud Dev / Tencent SCF / Cloudflare — pick one) | Bypasses the Lexiang WAF | Yes, for real devices |
 | Node.js ≥ 16 | Running the self-check script, generating keys | Recommended |
@@ -81,13 +81,32 @@ cp utils/config.example.js utils/config.js
 
 You need five values: `appKey`, `appSecret`, `teamId`, `spaceId`, `rootEntryId`.
 
-**3.1 Create an app and get `appKey` / `appSecret`**
+**3.1 Create API credentials and get `appKey` / `appSecret`**
 
-Sign in to the Lexiang open platform → "My apps" → create an app. Copy `appKey` and `appSecret` somewhere safe — they grant read/write access to your knowledge base, so **never commit them**.
+> This entry point is **not a separate site** — it lives inside the Lexiang admin console, and it is easy to miss. The free tier can create credentials too.
+
+1. Open `lexiang.tencent.com` in a browser and sign in as an **admin** (whoever created the team is the admin)
+2. Go to the **admin console** → left menu **"开发" (Develop)** → **"接口凭证管理" (API credentials)**
+   - Some versions call it "接口凭证" or nest it under "系统管理"; pick the closest match
+3. Click **"添加凭证" (Add credential)**, give it a name such as `cuoti-app`, confirm
+4. **The AppSecret is shown exactly once — close the dialog and it is gone forever.** Copy it immediately
+5. The **AppKey** is visible on the same page; copy that too
+6. Click **"修改权限" (Edit permissions)** on the credential and tick the knowledge-base APIs (read / create / update entries)
+7. Check **"知识授权范围" (Knowledge scope)** covers the knowledge base you intend to use (defaults to all knowledge in the company)
+
+> ⚠️ The two failures people hit here, every time:
+> ① **Closing the dialog before copying the AppSecret** — it is never shown again, so delete the credential and create a new one;
+> ② **Creating the credential without ticking API permissions** — every call then returns 403, and the self-check script will say so plainly.
+
+`appKey` / `appSecret` grant full read/write access to the knowledge base. **Never commit them** — they belong only in your local `utils/config.js`.
 
 **3.2 Get `teamId`**
 
-`teamId` is the team identifier, e.g. `1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d`. You can find it in the team settings of the Lexiang web app. With it, the next command resolves the knowledge-base coordinates for you.
+`teamId` is a 32-character hex string, e.g. `1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d`.
+
+To find it: open any team or knowledge-base page in the Lexiang web app and look at the address bar — the 32-character segment in the middle is usually it. With that value, the next command resolves all knowledge-base coordinates at once.
+
+> If you cannot find it, skip this step and use the fallback in 3.3 to get `spaceId` directly. `teamId` plays no part in the mini program at runtime; it is only an argument for the lookup script.
 
 **3.3 Get `spaceId` and `rootEntryId` with one command**
 
@@ -110,12 +129,24 @@ Fill both values into `spaceId` and `rootEntryId` in `config.js`. You can also p
 
 > If that endpoint is unavailable on your account tier, do it manually: open the knowledge base in the Lexiang web app, press F12 → Network, and read the `space_id` query parameter on any `/kb/` request. Resolve `rootEntryId` with `--list` in the next step.
 
-**3.4 Create the grade folder (subject folders are optional)**
+**3.4 Create the grade folder, then read its id**
 
-Create a folder named after the grade inside the knowledge base, e.g. `四年级` (Grade 4).
+1. Open your knowledge base in the Lexiang web app and create a folder named after the grade, e.g. `四年级` (Grade 4)
+2. Back in the terminal, run:
 
-- Grade 4: put its id into `grade4EntryId`
-- Other grades: leave it empty — the code looks up a folder with the same name as the grade selected at login (if not found it falls back to the root and logs a `未找到年级目录` warning)
+   ```bash
+   node tools/lexiang-check.js --list
+   ```
+
+   It prints every child of the root node in three columns: `type`, `name`, `id`:
+
+   ```
+   folder  四年级                   a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
+   ```
+
+3. Copy the id from the `四年级` row into `grade4EntryId` in `config.js`
+
+Other grades need no value. The code looks up a folder with the same name as the grade selected at login; if not found it falls back to the root and logs a `未找到年级目录` warning.
 
 **Subject folders (wrong answers / study memory / question bank) are created automatically** on first archive under the grade folder. If you prefer fixed ids, create them by hand and fill in `subjects`.
 
@@ -123,6 +154,8 @@ Create a folder named after the grade inside the knowledge base, e.g. `四年级
 
 - The "Identity and habits" page → `identityEntryId`
 - The "Session records" folder → `sessionEntryId`
+
+Same approach: create them in the knowledge base, then run `node tools/lexiang-check.js --list <grade folder id>` to list that level and copy the ids. Both are optional — skip them for the first run.
 
 **3.6 Verify**
 
@@ -238,7 +271,7 @@ Note: login verifies against `PRESET_ACCOUNTS` in `config.js` **on the client si
 | `CLOUD_ENV_ID` | Option A | Cloud Development environment id (console → Environment settings) |
 | `LEXIANG_PROXY_URL` | Option B/C | Public proxy URL |
 | `LEXIANG_PROXY_KEY` | Option B/C | Must equal the server-side `LX_PROXY_KEY` |
-| `LEXIANG.appKey` | Yes | Lexiang open-platform app |
+| `LEXIANG.appKey` | Yes | Created under "开发 → 接口凭证管理" in the Lexiang admin console |
 | `LEXIANG.appSecret` | Leave empty | If filled it is bundled into the Mini Program and can be extracted |
 | `LEXIANG.staffId` | Yes | Lexiang member account, sent as `x-staff-id` |
 | `LEXIANG.spaceId` | Yes | Knowledge-base id; `--spaces` resolves it |
@@ -258,7 +291,7 @@ Note: login verifies against `PRESET_ACCOUNTS` in `config.js` **on the client si
 | `服务端未配置 LX_PROXY_KEY，出于安全已拒绝所有请求` | SCF has no such variable | Add it under Function config → Environment variables, then redeploy |
 | `缺少 LX_PROXY_KEY：请为该 Worker 配置调用方校验密钥` | Worker missing the variable | Add it under Settings → Variables and Secrets |
 | `未配置可用代理（请填写 CLOUD_ENV_ID…）` | Neither channel configured | Back to step 4 |
-| `token 获取失败（HTTP 401/403）` | Wrong appKey / appSecret, or credentials were rotated | Re-check on the open platform |
+| `token 获取失败（HTTP 401/403）` | Wrong appKey / appSecret, rotated credentials, **or the credential has no API permissions ticked** | Back to "接口凭证管理" in the admin console → "修改权限" → tick the knowledge-base APIs |
 | `创建科目「X」失败` | Wrong spaceId, app lacks access to that knowledge base, or `staffId` is empty | Re-run `lexiang-check.js` |
 | Device reports `直连被拦截（404）` | WAF blocking the mobile UA | Expected — configure a proxy |
 | Works in DevTools, blank on device | No proxy, or domains not whitelisted | Steps 4 and 6 |
@@ -268,7 +301,7 @@ Note: login verifies against `PRESET_ACCOUNTS` in `config.js` **on the client si
 
 - `utils/config.js` **is git-ignored** because it holds real credentials. Commit only `config.example.js`
 - A Mini Program `appSecret` equals full read/write access to your knowledge base. **Leave it empty** and supply it through cloud-function environment variables (when empty, `lexiang.js` automatically uses the cloud/proxy channel)
-- Once a credential enters Git history it is compromised. Deleting the file does not help; it must be reissued on the open platform
+- Once a credential enters Git history it is compromised. Deleting the file does not help; delete that credential in the admin console and issue a new one
 - **Public proxies (SCF function URL, Cloudflare Worker) must set `LX_PROXY_KEY`.** Without it this repository's code rejects every request; if you strip that check, anyone with the URL can mint a token and read or write your knowledge base
 - Cloud Functions are authenticated by WeChat, but users of the same AppID can still invoke them; add an `OPENID` allowlist before multi-user use
 - `utils/crypto.js` is reversible obfuscation (XOR), **not encryption**. It only keeps cached keys from appearing in plaintext; do not treat it as a security boundary
