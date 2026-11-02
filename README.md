@@ -1,10 +1,16 @@
-# 错题智练
+# 错题智练 · Cuoti Zhilian
 
 [English](./README.en.md) | 简体中文
 
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
+[![WeChat Mini Program](https://img.shields.io/badge/WeChat-Mini%20Program-07C160.svg)]()
+[![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)]()
+
+> **错题不用再抄了。** 拍一张照，AI 把它整理成结构化错题、归档进知识库、再出几道同类题；连对几次，这道题自动从错题本上消失。
+
 面向小学生的 AI 错题学习闭环微信小程序：**拍照或口述录入错题 → 归档到乐享知识库 → AI 举一反三出题（闯关 / 模拟考试 / 原题练习）→ 连续答对达标自动消退**。
 
-原生微信小程序开发，**无框架、无 npm 依赖、无构建步骤**，导入开发者工具即可运行。
+原生微信小程序开发，**无框架、无 npm 依赖、无构建步骤**，导入开发者工具即可运行 —— 这也是它适合当「小程序 + 知识库 + LLM」完整落地参考案例的原因。
 
 ## 功能链路
 

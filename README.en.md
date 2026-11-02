@@ -1,10 +1,16 @@
-# Cuoti Zhilian
+# 错题智练 · Cuoti Zhilian
 
 English | [简体中文](./README.md)
 
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
+[![WeChat Mini Program](https://img.shields.io/badge/WeChat-Mini%20Program-07C160.svg)]()
+[![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)]()
+
+> **Stop copying mistakes by hand.** Snap a photo — the AI turns it into a structured record, archives it, and generates a few similar questions. Answer them correctly enough times and the mistake retires itself.
+
 An AI-powered wrong-question learning loop WeChat Mini Program for elementary school students: **capture a mistake by photo or voice → archive it to the Lexiang knowledge base → AI generates similar questions (challenge / mock exam / original practice) → auto-retire it once answered correctly N times in a row**.
 
-Built on native WeChat Mini Program APIs. **No framework, no npm dependencies, no build step** — just import the folder into WeChat DevTools and run.
+Built on native WeChat Mini Program APIs. **No framework, no npm dependencies, no build step** — just import the folder into WeChat DevTools and run. It also works as a complete reference for a "mini program + knowledge base + LLM" stack.
 
 ## How it works
 
