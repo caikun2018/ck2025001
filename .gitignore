@@ -12,6 +12,9 @@ project.private.config.json
 .workbuddy/
 .codebuddy/
 
+# 设计原型（过程产物）：本地保留，不进仓库
+demo/
+
 # 通用忽略
 node_modules/
 .DS_Store
